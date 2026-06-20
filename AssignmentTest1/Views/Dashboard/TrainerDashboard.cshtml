@@ -1,0 +1,140 @@
+﻿@{
+    ViewData["Title"] = "Trainer Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-tie me-2"></i>Trainer Dashboard</h2>
+        <span class="badge bg-primary p-2">Welcome, @User.Identity.Name!</span>
+    </div>
+    <hr />
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">My Classes</h6>
+                            <h2 class="card-text mb-0">@ViewBag.MyClasses?.Count</h2>
+                        </div>
+                        <i class="fas fa-dumbbell fa-3x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Total Students</h6>
+                            <h2 class="card-text mb-0">@ViewBag.TotalStudents</h2>
+                        </div>
+                        <i class="fas fa-users fa-3x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Upcoming Classes</h6>
+                            <h2 class="card-text mb-0">@ViewBag.UpcomingSchedules?.Count</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-3x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>My Upcoming Classes</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.UpcomingSchedules != null && ViewBag.UpcomingSchedules.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Venue</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var schedule in ViewBag.UpcomingSchedules)
+                                    {
+                                        <tr>
+                                            <td><strong>@schedule.Class?.ClassName</strong></td>
+                                            <td>@schedule.ScheduleDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>@schedule.Venue</td>
+                                            <td><span class="badge bg-success">Upcoming</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No upcoming classes</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>My Classes</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.MyClasses != null && ViewBag.MyClasses.Count > 0)
+                    {
+                        <div class="row">
+                            @foreach (var classItem in ViewBag.MyClasses)
+                            {
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">@classItem.ClassName</h5>
+                                            <p class="card-text text-muted">@classItem.Category</p>
+                                            <p class="card-text small">
+                                                <i class="fas fa-users me-1"></i> Max: @classItem.MaxCapacity
+                                            </p>
+                                            <p class="card-text small">
+                                                <i class="fas fa-calendar me-1"></i> @classItem.Schedules?.Count schedules
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">You have no classes assigned yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}

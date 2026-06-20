@@ -1,0 +1,195 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-pie me-2"></i>Admin Dashboard</h2>
+        <span class="badge bg-primary p-2">Welcome, @User.Identity.Name!</span>
+    </div>
+    <hr />
+
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Total Users</h6>
+                            <h2 class="card-text mb-0">@ViewBag.TotalUsers</h2>
+                        </div>
+                        <i class="fas fa-users fa-3x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Total Classes</h6>
+                            <h2 class="card-text mb-0">@ViewBag.TotalClasses</h2>
+                        </div>
+                        <i class="fas fa-dumbbell fa-3x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Total Bookings</h6>
+                            <h2 class="card-text mb-0">@ViewBag.TotalBookings</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-3x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Total Trainers</h6>
+                            <h2 class="card-text mb-0">@ViewBag.TotalTrainers</h2>
+                        </div>
+                        <i class="fas fa-user-tie fa-3x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.RecentBookings != null && ViewBag.RecentBookings.Count > 0)
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var booking in ViewBag.RecentBookings)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@booking.Member?.FullName</strong>
+                                        <span class="text-muted ms-2">booked</span>
+                                        <span class="badge bg-secondary">@booking.Schedule?.Class?.ClassName</span>
+                                    </div>
+                                    <small class="text-muted">@booking.BookedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No recent bookings</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Upcoming Classes</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.UpcomingClasses != null && ViewBag.UpcomingClasses.Count > 0)
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var schedule in ViewBag.UpcomingClasses)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@schedule.Class?.ClassName</strong>
+                                        <span class="text-muted ms-2">@schedule.Venue</span>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-info">@schedule.ScheduleDate.ToString("dd/MM")</span>
+                                        <span class="badge bg-secondary">@schedule.StartTime.ToString(@"hh\:mm")</span>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No upcoming classes</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <a asp-controller="User" asp-action="Index" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-users me-2"></i>Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Class" asp-action="Index" class="btn btn-outline-success w-100">
+                                <i class="fas fa-dumbbell me-2"></i>Manage Classes
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Schedule" asp-action="Index" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-calendar-alt me-2"></i>Manage Schedules
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Membership" asp-action="Plans" class="btn btn-outline-info w-100">
+                                <i class="fas fa-crown me-2"></i>Memberships
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>System Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <p><strong>Logged in as:</strong> @User.Identity.Name</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Role:</strong> <span class="badge bg-primary">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Email:</strong> @User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>System Status:</strong> <span class="badge bg-success">Running</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}
