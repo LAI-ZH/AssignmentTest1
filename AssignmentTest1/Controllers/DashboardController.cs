@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using AssignmentTest1.Data;
 
 namespace AssignmentTest1.Controllers
@@ -78,10 +79,16 @@ namespace AssignmentTest1.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Member")]
         public async Task<IActionResult> MemberDashboard()
         {
-            var memberId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+            // ✅ 安全获取用户 ID
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var memberId = int.Parse(userIdClaim);
 
             var myBookings = await _context.Bookings
                 .Where(b => b.MemberId == memberId)
@@ -96,7 +103,7 @@ namespace AssignmentTest1.Controllers
                 .Where(b => b.Status == "Confirmed")
                 .Include(b => b.Schedule)
                 .ThenInclude(s => s.Class)
-                .Where(b => b.Schedule.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
+                .Where(b => b.Schedule != null && b.Schedule.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
                 .OrderBy(b => b.Schedule.ScheduleDate)
                 .ThenBy(b => b.Schedule.StartTime)
                 .Take(5)

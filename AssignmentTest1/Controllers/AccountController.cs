@@ -30,6 +30,8 @@ namespace AssignmentTest1.Controllers
                     return RedirectToAction("Index", "Dashboard");
                 else if (role == "Trainer")
                     return RedirectToAction("TrainerDashboard", "Dashboard");
+                else if (role == "Member")
+                    return RedirectToAction("MemberDashboard", "Dashboard");
                 else
                     return RedirectToAction("Index", "Home");
             }
@@ -168,6 +170,10 @@ namespace AssignmentTest1.Controllers
 
             if (user.Role == "Admin")
                 return RedirectToAction("Index", "Dashboard");
+            else if (user.Role == "Trainer")
+                return RedirectToAction("TrainerDashboard", "Dashboard");
+            else if (user.Role == "Member")
+                return RedirectToAction("MemberDashboard", "Dashboard");
             else
                 return RedirectToAction("Index", "Home");
         }
