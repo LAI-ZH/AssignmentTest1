@@ -100,7 +100,7 @@ namespace AssignmentTest1.Controllers
 
             var upcomingBookings = await _context.Bookings
                 .Where(b => b.MemberId == memberId)
-                .Where(b => b.Status == "Confirmed")
+                .Where(b => b.Status == "Confiarmed")
                 .Include(b => b.Schedule)
                 .ThenInclude(s => s.Class)
                 .Where(b => b.Schedule != null && b.Schedule.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
