@@ -3,6 +3,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+
+<link rel="stylesheet" href="~/css/dashboard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-chart-pie me-2"></i>Admin Dashboard</h2>
@@ -10,22 +14,59 @@
     </div>
     <hr />
 
-    <div class="row g-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title text-white-50">Total Users</h6>
-                            <h2 class="card-text mb-0">@ViewBag.TotalUsers</h2>
+    <!-- 统计卡片 - 第一行 -->
+        <!-- 管理员 -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-white bg-danger shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-white-50">Admins</h6>
+                                <h2 class="card-text mb-0">@ViewBag.TotalAdmins</h2>
+                            </div>
+                            <i class="fas fa-user-shield fa-3x text-white-50"></i>
                         </div>
-                        <i class="fas fa-users fa-3x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 教练 -->
+            <div class="col-md-4">
+                <div class="card text-white bg-info shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-white-50">Trainers</h6>
+                                <h2 class="card-text mb-0">@ViewBag.TotalTrainers</h2>
+                            </div>
+                            <i class="fas fa-user-tie fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 会员 -->
+            <div class="col-md-4">
+                <div class="card text-white bg-success shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-white-50">Members</h6>
+                                <h2 class="card-text mb-0">@ViewBag.TotalMembers</h2>
+                            </div>
+                            <i class="fas fa-user fa-3x text-white-50"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success shadow-sm">
+
+    </div>
+    <!-- 统计卡片 - 第二行 -->
+    <div class="row g-4 mt-2">
+        <div class="col-md-6">
+            <div class="card text-white bg-warning shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -37,8 +78,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning shadow-sm">
+        <div class="col-md-6">
+            <div class="card text-white bg-secondary shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -50,22 +91,11 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title text-white-50">Total Trainers</h6>
-                            <h2 class="card-text mb-0">@ViewBag.TotalTrainers</h2>
-                        </div>
-                        <i class="fas fa-user-tie fa-3x text-white-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
+    <!-- Recent Activity -->
     <div class="row mt-4">
+        <!-- Recent Bookings -->
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header bg-white">
@@ -96,6 +126,7 @@
             </div>
         </div>
 
+        <!-- Upcoming Classes -->
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header bg-white">
@@ -129,6 +160,7 @@
         </div>
     </div>
 
+    <!-- Quick Actions -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow-sm">
@@ -163,6 +195,7 @@
         </div>
     </div>
 
+    <!-- System Info -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow-sm">
@@ -175,7 +208,7 @@
                             <p><strong>Logged in as:</strong> @User.Identity.Name</p>
                         </div>
                         <div class="col-md-3">
-                            <p><strong>Role:</strong> <span class="badge bg-primary">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></p>
+                            <p><strong>Role:</strong> <span class="badge bg-danger">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></p>
                         </div>
                         <div class="col-md-3">
                             <p><strong>Email:</strong> @User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</p>

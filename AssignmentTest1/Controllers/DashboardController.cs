@@ -18,13 +18,26 @@ namespace AssignmentTest1.Controllers
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
-        {
-            ViewBag.TotalUsers = await _context.Users.CountAsync();
-            ViewBag.TotalClasses = await _context.FitnessClasses.CountAsync();
-            ViewBag.TotalBookings = await _context.Bookings.CountAsync();
-            ViewBag.TotalTrainers = await _context.Users
+        { 
+            var totalAdmins = await _context.Users
+                .Where(u => u.Role == "Admin")
+                .CountAsync();
+
+            var totalTrainers = await _context.Users
                 .Where(u => u.Role == "Trainer")
                 .CountAsync();
+
+            var totalMembers = await _context.Users
+                .Where(u => u.Role == "Member")
+                .CountAsync();
+
+            var totalUsers = await _context.Users.CountAsync();
+
+            ViewBag.TotalAdmins = totalAdmins;
+            ViewBag.TotalTrainers = totalTrainers;
+            ViewBag.TotalMembers = totalMembers;
+            ViewBag.TotalClasses = await _context.FitnessClasses.CountAsync();
+            ViewBag.TotalBookings = await _context.Bookings.CountAsync();
 
             var recentBookings = await _context.Bookings
                 .Include(b => b.Member)
