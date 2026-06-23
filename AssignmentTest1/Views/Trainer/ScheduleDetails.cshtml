@@ -1,0 +1,187 @@
+﻿@model AssignmentTest1.Models.Entities.ClassSchedule
+
+@{
+    ViewData["Title"] = "Schedule Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .detail-row {
+        display: flex;
+        padding: 0.5rem 0;
+        border-bottom: 0.5px solid #F3F4F6;
+    }
+
+    .detail-label {
+        width: 150px;
+        font-weight: 500;
+        color: #6B7280;
+    }
+
+    .detail-value {
+        flex: 1;
+        color: #1A1A2E;
+    }
+
+    .badge-confirmed {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .badge-attended {
+        background: #E6F1FB;
+        color: #185FA5;
+    }
+
+    .badge-cancelled {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+
+    .badge-pending {
+        background: #FFF3CD;
+        color: #856404;
+    }
+
+    .student-row:hover {
+        background: #F9FAFB;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-calendar-alt me-2"></i>Schedule Details</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Schedule Info -->
+                    <div class="detail-row">
+                        <span class="detail-label">Class</span>
+                        <span class="detail-value"><strong>@Model.Class?.ClassName</strong></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Trainer</span>
+                        <span class="detail-value">@Model.Class?.Trainer?.FullName</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Date</span>
+                        <span class="detail-value">@Model.ScheduleDate.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Time</span>
+                        <span class="detail-value">@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Venue</span>
+                        <span class="detail-value">@Model.Venue</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Bookings</span>
+                        <span class="detail-value">
+                            <span class="badge badge-confirmed">@(Model.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0)</span>
+                            confirmed /
+                            <span class="badge badge-attended">@(Model.Bookings?.Count(b => b.Status == "Attended") ?? 0)</span>
+                            attended /
+                            <span class="badge badge-cancelled">@(Model.Bookings?.Count(b => b.Status == "Cancelled") ?? 0)</span>
+                            cancelled
+                        </span>
+                    </div>
+
+                    <!-- Students List -->
+                    @if (Model.Bookings != null && Model.Bookings.Any())
+                    {
+                        <hr />
+                        <h5><i class="fas fa-users me-2"></i>Students</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var booking in Model.Bookings.OrderBy(b => b.Member?.FullName))
+                                    {
+                                        <tr class="student-row">
+                                            <td>@booking.Member?.FullName</td>
+                                            <td>@booking.Member?.Email</td>
+                                            <td>@(booking.Member?.Phone ?? "-")</td>
+                                            <td>
+                                                @if (booking.Status == "Confirmed")
+                                                {
+                                                    <span class="badge badge-confirmed">Confirmed</span>
+                                                }
+                                                else if (booking.Status == "Attended")
+                                                {
+                                                    <span class="badge badge-attended">Attended</span>
+                                                }
+                                                else if (booking.Status == "Cancelled")
+                                                {
+                                                    <span class="badge badge-cancelled">Cancelled</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-pending">@booking.Status</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <form asp-action="MarkAttendance" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="bookingId" value="@booking.BookingId" />
+                                                    @if (booking.Status == "Confirmed")
+                                                    {
+                                                        <button type="submit" name="attended" value="true" class="btn btn-sm btn-success" title="Mark as Attended">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    }
+                                                    else if (booking.Status == "Attended")
+                                                    {
+                                                        <button type="submit" name="attended" value="false" class="btn btn-sm btn-warning" title="Undo Attended">
+                                                            <i class="fas fa-undo"></i>
+                                                        </button>
+                                                    }
+                                                </form>
+                                                @if (booking.Status != "Cancelled")
+                                                {
+                                                    <form asp-action="CancelBooking" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="bookingId" value="@booking.BookingId" />
+                                                        <button type="submit" class="btn btn-sm btn-danger" title="Cancel Booking" onclick="return confirm('Cancel this booking?')">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <hr />
+                        <p class="text-muted text-center">No students booked for this session yet.</p>
+                    }
+
+                    <div class="mt-4">
+                        <a asp-action="MySchedule" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to My Schedule
+                        </a>
+                        <a asp-action="MyClasses" class="btn btn-outline-info ms-2">
+                            <i class="fas fa-dumbbell me-2"></i>My Classes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

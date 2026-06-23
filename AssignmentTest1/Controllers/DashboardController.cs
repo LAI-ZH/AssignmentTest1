@@ -60,20 +60,29 @@ namespace AssignmentTest1.Controllers
             return View();
         }
 
+        // ===== TRAINER DASHBOARD =====
         [Authorize(Roles = "Trainer")]
         public async Task<IActionResult> TrainerDashboard()
         {
-            var trainerId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
+            var trainerId = int.Parse(userIdClaim);
+
+            // 教练的课程
             var myClasses = await _context.FitnessClasses
                 .Where(c => c.TrainerId == trainerId)
                 .Include(c => c.Schedules)
                 .ToListAsync();
             ViewBag.MyClasses = myClasses;
 
+            // 即将开始的课程
             var upcomingSchedules = await _context.ClassSchedules
                 .Include(cs => cs.Class)
-                .Where(cs => cs.Class.TrainerId == trainerId)
+                .Where(cs => cs.Class != null && cs.Class.TrainerId == trainerId)
                 .Where(cs => cs.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
                 .OrderBy(cs => cs.ScheduleDate)
                 .ThenBy(cs => cs.StartTime)
@@ -81,10 +90,11 @@ namespace AssignmentTest1.Controllers
                 .ToListAsync();
             ViewBag.UpcomingSchedules = upcomingSchedules;
 
+            // 总学生数
             var totalStudents = await _context.Bookings
                 .Include(b => b.Schedule)
-                .ThenInclude(s => s.Class)
-                .Where(b => b.Schedule.Class.TrainerId == trainerId)
+                    .ThenInclude(s => s.Class)
+                .Where(b => b.Schedule != null && b.Schedule.Class != null && b.Schedule.Class.TrainerId == trainerId)
                 .Where(b => b.Status == "Confirmed" || b.Status == "Attended")
                 .CountAsync();
             ViewBag.TotalStudents = totalStudents;

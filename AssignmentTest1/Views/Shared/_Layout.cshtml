@@ -34,8 +34,23 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="User" asp-action="Index">
+                                        <i class="fas fa-users me-1"></i>Users
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Trainer" asp-action="Index">
+                                        <i class="fas fa-user-tie me-1"></i>Trainers
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link text-dark" asp-controller="Class" asp-action="Index">
                                         <i class="fas fa-dumbbell me-1"></i>Classes
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Schedule" asp-action="Index">
+                                        <i class="fas fa-calendar-alt me-1"></i>Schedules
                                     </a>
                                 </li>
                             }
@@ -44,6 +59,16 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="TrainerDashboard">
                                         <i class="fas fa-chart-pie me-1"></i>Dashboard
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Trainer" asp-action="MyClasses">
+                                        <i class="fas fa-dumbbell me-1"></i>My Classes
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Trainer" asp-action="MySchedule">
+                                        <i class="fas fa-calendar-alt me-1"></i>My Schedule
                                     </a>
                                 </li>
                             }

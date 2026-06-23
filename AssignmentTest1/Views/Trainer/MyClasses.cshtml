@@ -1,0 +1,98 @@
+﻿@model IEnumerable<AssignmentTest1.Models.Entities.FitnessClass>
+
+@{
+    ViewData["Title"] = "My Classes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .page-header h2 {
+            margin: 0;
+        }
+
+    .badge-schedule {
+        background: #E6F1FB;
+        color: #185FA5;
+    }
+
+    .class-card-trainer {
+        border-left: 4px solid #0DCAF0;
+        transition: transform 0.2s;
+    }
+
+        .class-card-trainer:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+</style>
+
+<div class="container mt-4">
+    <div class="page-header">
+        <h2><i class="fas fa-dumbbell me-2"></i>My Classes</h2>
+        <span class="badge bg-info p-2">Total: @Model.Count()</span>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card class-card-trainer h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">@item.ClassName</h5>
+                            <p class="card-text text-muted">
+                                <i class="fas fa-tag me-1"></i>@item.Category
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-users me-1"></i>Max Capacity: @item.MaxCapacity
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                <span class="badge badge-schedule">@(item.Schedules?.Count ?? 0) schedules</span>
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-user-check me-1"></i>
+                                <span class="badge bg-success">
+                                    @(item.Schedules?.Sum(s => s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) ?? 0) students
+                                </span>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a asp-action="ClassDetails" asp-route-id="@item.ClassId" class="btn btn-outline-info btn-sm w-100">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-dumbbell fa-3x text-muted mb-3"></i>
+            <p class="text-muted">You have no classes assigned yet.</p>
+            <p class="text-muted small">Contact an administrator to assign you to classes.</p>
+        </div>
+    }
+</div>
