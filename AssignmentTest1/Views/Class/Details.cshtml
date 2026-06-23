@@ -1,0 +1,137 @@
+﻿@model AssignmentTest1.Models.Entities.FitnessClass
+
+@{
+    ViewData["Title"] = "Class Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .detail-row {
+        display: flex;
+        padding: 0.5rem 0;
+        border-bottom: 0.5px solid #F3F4F6;
+    }
+
+    .detail-label {
+        width: 150px;
+        font-weight: 500;
+        color: #6B7280;
+    }
+
+    .detail-value {
+        flex: 1;
+        color: #1A1A2E;
+    }
+
+    .badge-active {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .badge-inactive {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+
+    .badge-schedule {
+        background: #E6F1FB;
+        color: #185FA5;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-dumbbell me-2"></i>Class Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">Class ID</span>
+                        <span class="detail-value">@Model.ClassId</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Class Name</span>
+                        <span class="detail-value"><strong>@Model.ClassName</strong></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Category</span>
+                        <span class="detail-value"><span class="badge bg-secondary">@Model.Category</span></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Description</span>
+                        <span class="detail-value">@(Model.Description ?? "No description")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Max Capacity</span>
+                        <span class="detail-value">@Model.MaxCapacity</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Trainer</span>
+                        <span class="detail-value">@(Model.Trainer?.FullName ?? "Not assigned")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge badge-active">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-inactive">Inactive</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Schedules</span>
+                        <span class="detail-value">
+                            <span class="badge badge-schedule">@(Model.Schedules?.Count ?? 0)</span>
+                        </span>
+                    </div>
+
+                    @if (Model.Schedules != null && Model.Schedules.Any())
+                    {
+                        <hr />
+                        <h5><i class="fas fa-calendar-alt me-2"></i>Schedule List</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Venue</th>
+                                        <th>Bookings</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var schedule in Model.Schedules.OrderBy(s => s.ScheduleDate))
+                                    {
+                                        <tr>
+                                            <td>@schedule.ScheduleDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>@schedule.Venue</td>
+                                            <td>@(schedule.Bookings?.Count ?? 0)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <div class="mt-4 d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.ClassId" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
