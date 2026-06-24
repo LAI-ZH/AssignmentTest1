@@ -1,0 +1,147 @@
+﻿@model IEnumerable<AssignmentTest1.Models.Entities.ClassSchedule>
+
+@{
+    ViewData["Title"] = "Manage Schedules";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .page-header h2 { margin: 0; }
+    .badge-booking { background: #E6F1FB; color: #185FA5; }
+    .table-action { display: flex; gap: 5px; }
+    .table-action .btn { padding: 0.2rem 0.5rem; font-size: 13px; }
+</style>
+
+<div class="container mt-4">
+    <div class="page-header">
+        <h2><i class="fas fa-calendar-alt me-2"></i>Manage Schedules</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add Schedule
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            @TempData["Warning"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Class</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Venue</th>
+                            <th>Bookings</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.ScheduleId</td>
+                                <td><strong>@item.Class?.ClassName</strong></td>
+                                <td>@item.ScheduleDate.ToString("dd/MM/yyyy")</td>
+                                <td>@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</td>
+                                <td>@item.Venue</td>
+                                <td>
+                                    <span class="badge badge-booking">@(item.Bookings?.Count ?? 0)</span>
+                                </td>
+                                <td>
+                                    <div class="table-action">
+                                        <a asp-action="Details" asp-route-id="@item.ScheduleId" class="btn btn-sm btn-info" title="Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.ScheduleId" class="btn btn-sm btn-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" title="Delete"
+                                                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                data-id="@item.ScheduleId" data-name="@item.Class?.ClassName - @item.ScheduleDate.ToString("dd/MM/yyyy")">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <p class="text-muted text-center my-4">No schedules found. <a asp-action="Create">Add one</a>.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete schedule: <strong id="deleteScheduleName"></strong>?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteScheduleId" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Populate delete modal
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var id = button.getAttribute('data-id');
+            var name = button.getAttribute('data-name');
+            document.getElementById('deleteScheduleId').value = id;
+            document.getElementById('deleteScheduleName').textContent = name;
+        });
+    </script>
+}
