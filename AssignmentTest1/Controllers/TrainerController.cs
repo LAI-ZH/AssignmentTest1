@@ -8,7 +8,6 @@ using System.Security.Claims;
 using AssignmentTest1.Models.ViewModels;    
 namespace AssignmentTest1.Controllers
 {
-    [Authorize(Roles = "Trainer")]
     public class TrainerController : Controller
     {
         private readonly FitBookDbContext _context;

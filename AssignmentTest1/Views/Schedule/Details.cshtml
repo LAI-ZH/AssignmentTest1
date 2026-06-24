@@ -1,0 +1,126 @@
+﻿@model AssignmentTest1.Models.Entities.ClassSchedule
+
+@{
+    ViewData["Title"] = "Schedule Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .detail-row {
+        display: flex;
+        padding: 0.5rem 0;
+        border-bottom: 0.5px solid #F3F4F6;
+    }
+
+    .detail-label {
+        width: 150px;
+        font-weight: 500;
+        color: #6B7280;
+    }
+
+    .detail-value {
+        flex: 1;
+        color: #1A1A2E;
+    }
+
+    .badge-booking {
+        background: #E6F1FB;
+        color: #185FA5;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-calendar-alt me-2"></i>Schedule Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">Schedule ID</span>
+                        <span class="detail-value">@Model.ScheduleId</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Class</span>
+                        <span class="detail-value"><strong>@Model.Class?.ClassName</strong></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Trainer</span>
+                        <span class="detail-value">@Model.Class?.Trainer?.FullName</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Date</span>
+                        <span class="detail-value">@Model.ScheduleDate.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Time</span>
+                        <span class="detail-value">@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Venue</span>
+                        <span class="detail-value">@Model.Venue</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Bookings</span>
+                        <span class="detail-value">
+                            <span class="badge badge-booking">@(Model.Bookings?.Count ?? 0)</span>
+                            bookings
+                        </span>
+                    </div>
+
+                    @if (Model.Bookings != null && Model.Bookings.Any())
+                    {
+                        <hr />
+                        <h5><i class="fas fa-users me-2"></i>Bookings</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Member</th>
+                                        <th>Status</th>
+                                        <th>Booked On</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var booking in Model.Bookings)
+                                    {
+                                        <tr>
+                                            <td>@booking.Member?.FullName</td>
+                                            <td>
+                                                @if (booking.Status == "Confirmed")
+                                                {
+                                                    <span class="badge bg-success">Confirmed</span>
+                                                }
+                                                else if (booking.Status == "Cancelled")
+                                                {
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">@booking.Status</span>
+                                                }
+                                            </td>
+                                            <td>@booking.BookedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <div class="mt-4 d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.ScheduleId" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,81 @@
+﻿@model AssignmentTest1.Models.ViewModels.ScheduleViewModel
+
+@{
+    ViewData["Title"] = "Add Schedule";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-plus me-2"></i>Add Schedule</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Class Dropdown -->
+                        <div class="mb-3">
+                            <label asp-for="ClassId" class="form-label fw-bold"></label>
+                            <select asp-for="ClassId" class="form-select" asp-items="ViewBag.Classes">
+                                <option value="">Select Class</option>
+                            </select>
+                            <span asp-validation-for="ClassId" class="text-danger"></span>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="mb-3">
+                            <label asp-for="ScheduleDate" class="form-label fw-bold"></label>
+                            <input asp-for="ScheduleDate" class="form-control" type="date" />
+                            <span asp-validation-for="ScheduleDate" class="text-danger"></span>
+                        </div>
+
+                        <!-- Time -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="StartTime" class="form-label fw-bold"></label>
+                                    <input asp-for="StartTime" class="form-control" type="time" />
+                                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="EndTime" class="form-label fw-bold"></label>
+                                    <input asp-for="EndTime" class="form-control" type="time" />
+                                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Venue -->
+                        <div class="mb-3">
+                            <label asp-for="Venue" class="form-label fw-bold"></label>
+                            <input asp-for="Venue" class="form-control" placeholder="e.g. Studio A, Room 101" />
+                            <span asp-validation-for="Venue" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Create Schedule
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
