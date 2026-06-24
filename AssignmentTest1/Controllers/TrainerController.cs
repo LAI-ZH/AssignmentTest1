@@ -8,7 +8,6 @@ using System.Security.Claims;
 using AssignmentTest1.Models.ViewModels;    
 namespace AssignmentTest1.Controllers
 {
-    [Authorize(Roles = "Trainer")]
     public class TrainerController : Controller
     {
         private readonly FitBookDbContext _context;
@@ -177,6 +176,7 @@ namespace AssignmentTest1.Controllers
         }
 
         // GET: /Trainer/MyClasses - 查看我的课程
+        [Authorize(Roles = "Trainer")]
         public async Task<IActionResult> MyClasses()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
