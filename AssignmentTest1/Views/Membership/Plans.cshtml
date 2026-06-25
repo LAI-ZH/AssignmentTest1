@@ -1,0 +1,157 @@
+﻿@model IEnumerable<AssignmentTest1.Models.Entities.MembershipPlan>
+
+@{
+    ViewData["Title"] = "Membership Plans";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .page-header h2 { margin: 0; }
+    .badge-active { background: #EAF3DE; color: #3B6D11; }
+    .badge-inactive { background: #FCEBEB; color: #A32D2D; }
+    .plan-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-left: 4px solid #4F6EF7;
+    }
+    .plan-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .plan-price {
+        font-size: 32px;
+        font-weight: 600;
+        color: #1A1A2E;
+    }
+    .plan-price small {
+        font-size: 16px;
+        font-weight: 400;
+        color: #6B7280;
+    }
+    .table-action { display: flex; gap: 5px; }
+    .table-action .btn { padding: 0.2rem 0.5rem; font-size: 13px; }
+</style>
+
+<div class="container mt-4">
+    <div class="page-header">
+        <h2><i class="fas fa-crown me-2"></i>Membership Plans</h2>
+        <a asp-action="CreatePlan" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create Plan
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card plan-card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title">@item.PlanName</h5>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge badge-active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-inactive">Inactive</span>
+                                }
+                            </div>
+                            <div class="plan-price">
+                                RM @item.Price.ToString("F2")
+                                <small>/ @item.DurationDays days</small>
+                            </div>
+                            <p class="card-text text-muted mt-2">@(item.Description ?? "No description")</p>
+                            <p class="card-text">
+                                <span class="badge bg-secondary">@(item.Subscriptions?.Count ?? 0) subscriptions</span>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex gap-2">
+                                <a asp-action="EditPlan" asp-route-id="@item.PlanId" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <button type="button" class="btn btn-danger btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                        data-id="@item.PlanId" data-name="@item.PlanName">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-crown fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No membership plans found. <a asp-action="CreatePlan">Create one</a>.</p>
+        </div>
+    }
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete plan <strong id="deletePlanName"></strong>?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="DeletePlan" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deletePlanId" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var id = button.getAttribute('data-id');
+            var name = button.getAttribute('data-name');
+            document.getElementById('deletePlanId').value = id;
+            document.getElementById('deletePlanName').textContent = name;
+        });
+    </script>
+}

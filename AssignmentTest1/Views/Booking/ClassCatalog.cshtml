@@ -1,0 +1,134 @@
+﻿@model IEnumerable<AssignmentTest1.Models.Entities.FitnessClass>
+
+@{
+    ViewData["Title"] = "Browse Classes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .page-header h2 {
+            margin: 0;
+        }
+
+    .class-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-left: 4px solid #4F6EF7;
+        cursor: pointer;
+    }
+
+        .class-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        .class-card .card-title {
+            color: #1A1A2E;
+        }
+
+        .class-card .class-meta {
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+            .class-card .class-meta i {
+                width: 18px;
+                color: #4F6EF7;
+            }
+
+    .badge-available {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .badge-full {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="page-header">
+        <h2><i class="fas fa-search me-2"></i>Browse Classes</h2>
+        <span class="badge bg-info p-2">@Model.Count() classes available</span>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show">
+            <i class="fas fa-info-circle me-2"></i>@TempData["Info"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                var upcomingCount = item.Schedules?.Count(s => s.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now)) ?? 0;
+                var totalBookings = item.Schedules?.Sum(s => s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) ?? 0;
+
+                <div class="col-md-4 mb-4">
+                    <div class="card class-card h-100 shadow-sm" onclick="location.href='@Url.Action("ClassDetails", new { id = item.ClassId })'">
+                        <div class="card-body">
+                            <h5 class="card-title">@item.ClassName</h5>
+                            <p class="class-meta"><i class="fas fa-tag"></i>@item.Category</p>
+                            <p class="class-meta"><i class="fas fa-user-tie"></i>@item.Trainer?.FullName</p>
+                            <p class="class-meta"><i class="fas fa-users"></i>@totalBookings / @item.MaxCapacity</p>
+                            <p class="class-meta"><i class="fas fa-calendar-alt"></i>@upcomingCount upcoming sessions</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            @if (upcomingCount > 0)
+                            {
+                                <span class="badge badge-available">Available</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-full">No sessions</span>
+                            }
+                            <span class="float-end text-muted small">Click to view details</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-dumbbell fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No classes available at the moment.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}

@@ -47,6 +47,16 @@
                                         <i class="fas fa-calendar-alt me-1"></i>Schedules
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Membership" asp-action="Plans">
+                                        <i class="fas fa-crown me-1"></i>Memberships
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Booking" asp-action="AdminIndex">
+                                        <i class="fas fa-calendar-check me-1"></i>Bookings
+                                    </a>
+                                </li>
                             }
                             else if (User.IsInRole("Trainer"))
                             {
@@ -71,6 +81,16 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="MemberDashboard">
                                         <i class="fas fa-chart-pie me-1"></i>Dashboard
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Booking" asp-action="ClassCatalog">
+                                        <i class="fas fa-search me-1"></i>Browse Classes
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Booking" asp-action="MyBookings">
+                                        <i class="fas fa-calendar-check me-1"></i>My Bookings
                                     </a>
                                 </li>
                             }

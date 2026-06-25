@@ -1,0 +1,142 @@
+﻿@model IEnumerable<AssignmentTest1.Models.Entities.Booking>
+
+@{
+    ViewData["Title"] = "Manage Bookings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .page-header h2 {
+            margin: 0;
+        }
+
+    .badge-confirmed {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .badge-cancelled {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+
+    .badge-attended {
+        background: #E6F1FB;
+        color: #185FA5;
+    }
+
+    .badge-waitlist {
+        background: #FFF3CD;
+        color: #856404;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="page-header">
+        <h2><i class="fas fa-calendar-check me-2"></i>Manage Bookings</h2>
+        <span class="badge bg-info p-2">Total: @Model.Count()</span>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Member</th>
+                            <th>Class</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Venue</th>
+                            <th>Status</th>
+                            <th>Booked On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderByDescending(b => b.BookedAt))
+                        {
+                            <tr>
+                                <td>@item.BookingId</td>
+                                <td>@item.Member?.FullName</td>
+                                <td><strong>@item.Schedule?.Class?.ClassName</strong></td>
+                                <td>@item.Schedule?.ScheduleDate.ToString("dd/MM/yyyy")</td>
+                                <td>@item.Schedule?.StartTime.ToString(@"hh\:mm")</td>
+                                <td>@item.Schedule?.Venue</td>
+                                <td>
+                                    @if (item.Status == "Confirmed")
+                                    {
+                                        <span class="badge badge-confirmed">Confirmed</span>
+                                    }
+                                    else if (item.Status == "Cancelled")
+                                    {
+                                        <span class="badge badge-cancelled">Cancelled</span>
+                                    }
+                                    else if (item.Status == "Attended")
+                                    {
+                                        <span class="badge badge-attended">Attended</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-waitlist">@item.Status</span>
+                                    }
+                                </td>
+                                <td>@item.BookedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (item.Status == "Confirmed")
+                                    {
+                                        <form asp-action="AdminCancel" method="post" class="d-inline" onsubmit="return confirm('Cancel this booking?')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="bookingId" value="@item.BookingId" />
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (item.Status == "Cancelled" || item.Status == "Waitlist")
+                                    {
+                                        <form asp-action="AdminConfirm" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="bookingId" value="@item.BookingId" />
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}
