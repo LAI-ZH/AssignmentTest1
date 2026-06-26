@@ -1,7 +1,8 @@
-﻿@model AssignmentTest1.Models.Entities.FitnessClass
+﻿@using System.Security.Claims
+@model AssignmentTest1.Models.ViewModels.ClassDetailsViewModel
 
 @{
-    ViewData["Title"] = "Class Details - " + Model.ClassName;
+    ViewData["Title"] = "Class Details - " + Model.Class?.ClassName;
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -46,29 +47,29 @@
         <div class="col-md-10">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h4><i class="fas fa-dumbbell me-2"></i>@Model.ClassName</h4>
+                    <h4><i class="fas fa-dumbbell me-2"></i>@Model.Class?.ClassName</h4>
                 </div>
                 <div class="card-body">
                     <!-- Class Info -->
                     <div class="detail-row">
                         <span class="detail-label">Category</span>
-                        <span class="detail-value"><span class="badge bg-secondary">@Model.Category</span></span>
+                        <span class="detail-value"><span class="badge bg-secondary">@Model.Class?.Category</span></span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Trainer</span>
-                        <span class="detail-value">@Model.Trainer?.FullName</span>
+                        <span class="detail-value">@Model.Class?.Trainer?.FullName</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Description</span>
-                        <span class="detail-value">@(Model.Description ?? "No description")</span>
+                        <span class="detail-value">@(Model.Class?.Description ?? "No description")</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Max Capacity</span>
-                        <span class="detail-value">@Model.MaxCapacity</span>
+                        <span class="detail-value">@Model.Class?.MaxCapacity</span>
                     </div>
 
                     <!-- Upcoming Schedules -->
-                    @if (ViewBag.UpcomingSchedules != null && ViewBag.UpcomingSchedules.Count > 0)
+                    @if (Model.UpcomingSchedules != null && Model.UpcomingSchedules.Any())
                     {
                         <hr />
                         <h5><i class="fas fa-calendar-alt me-2"></i>Upcoming Sessions</h5>
@@ -84,53 +85,42 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var schedule in ViewBag.UpcomingSchedules)
+                                    @foreach (var item in Model.UpcomingSchedules)
                                     {
-                                        var confirmedCount = schedule.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0;
-                                        var isFull = confirmedCount >= Model.MaxCapacity;
-                                        var memberId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                                        var hasBooked = false;
-
-                                        if (memberId != null)
-                                        {
-                                            var memberIdInt = int.Parse(memberId);
-                                            hasBooked = schedule.Bookings?.Any(b => b.MemberId == memberIdInt && b.Status != "Cancelled") ?? false;
-                                        }
-
                                         <tr>
-                                            <td>@schedule.ScheduleDate.ToString("dd/MM/yyyy")</td>
-                                            <td>@schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")</td>
-                                            <td>@schedule.Venue</td>
+                                            <td>@item.Schedule?.ScheduleDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@item.Schedule?.StartTime.ToString(@"hh\:mm") - @item.Schedule?.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>@item.Schedule?.Venue</td>
                                             <td>
-                                                @if (hasBooked)
+                                                @if (item.HasBooked)
                                                 {
                                                     <span class="badge badge-booked">Booked</span>
                                                 }
-                                                else if (isFull)
+                                                else if (item.IsFull)
                                                 {
                                                     <span class="badge badge-full">Full</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge badge-available">@(Model.MaxCapacity - confirmedCount) spots left</span>
+                                                    <span class="badge badge-available">@(Model.Class.MaxCapacity - item.ConfirmedCount) spots left</span>
                                                 }
                                             </td>
                                             <td>
-                                                @if (!hasBooked && !isFull)
+                                                @if (!item.HasBooked && !item.IsFull)
                                                 {
                                                     <form asp-action="Book" method="post">
                                                         @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="scheduleId" value="@schedule.ScheduleId" />
+                                                        <input type="hidden" name="scheduleId" value="@item.Schedule?.ScheduleId" />
                                                         <button type="submit" class="btn btn-success btn-sm">
                                                             <i class="fas fa-check me-1"></i>Book
                                                         </button>
                                                     </form>
                                                 }
-                                                else if (hasBooked)
+                                                else if (item.HasBooked)
                                                 {
                                                     <span class="text-muted small">Already booked</span>
                                                 }
-                                                else if (isFull)
+                                                else if (item.IsFull)
                                                 {
                                                     <span class="text-muted small">Full</span>
                                                 }
@@ -160,3 +150,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}

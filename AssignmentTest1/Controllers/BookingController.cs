@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AssignmentTest1.Data;
 using AssignmentTest1.Models.Entities;
+using AssignmentTest1.Models.ViewModels;
 using System.Security.Claims;
 
 namespace AssignmentTest1.Controllers
@@ -16,7 +17,9 @@ namespace AssignmentTest1.Controllers
             _context = context;
         }
 
-        // ============ MEMBER FUNCTIONS ============
+        // ============================================================
+        // MEMBER FUNCTIONS
+        // ============================================================
 
         // GET: /Booking/ClassCatalog - 浏览课程目录
         [Authorize(Roles = "Member")]
@@ -47,18 +50,36 @@ namespace AssignmentTest1.Controllers
                 return NotFound();
             }
 
-            // 只显示未来的日程
-            var upcomingSchedules = fitnessClass.Schedules?
-                .Where(s => s.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
-                .OrderBy(s => s.ScheduleDate)
-                .ThenBy(s => s.StartTime)
-                .ToList();
+            // 获取当前用户 ID
+            var memberIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? memberId = null;
+            if (!string.IsNullOrEmpty(memberIdClaim))
+            {
+                memberId = int.Parse(memberIdClaim);
+            }
 
-            ViewBag.UpcomingSchedules = upcomingSchedules;
-            return View(fitnessClass);
+            // 在 Controller 中处理数据，创建 ViewModel
+            var viewModel = new ClassDetailsViewModel
+            {
+                Class = fitnessClass,
+                UpcomingSchedules = fitnessClass.Schedules?
+                    .Where(s => s.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
+                    .OrderBy(s => s.ScheduleDate)
+                    .ThenBy(s => s.StartTime)
+                    .Select(s => new ScheduleWithBookingInfo
+                    {
+                        Schedule = s,
+                        ConfirmedCount = s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0,
+                        IsFull = (s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) >= fitnessClass.MaxCapacity,
+                        HasBooked = memberId.HasValue && (s.Bookings?.Any(b => b.MemberId == memberId.Value && b.Status != "Cancelled") ?? false)
+                    })
+                    .ToList()
+            };
+
+            return View(viewModel);
         }
 
-        // POST: /Booking/Book/5 - 预订课程
+        // POST: /Booking/Book - 预订课程
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Member")]
@@ -216,7 +237,9 @@ namespace AssignmentTest1.Controllers
             return RedirectToAction("MyBookings");
         }
 
-        // ============ ADMIN FUNCTIONS ============
+        // ============================================================
+        // ADMIN FUNCTIONS
+        // ============================================================
 
         // GET: /Booking/AdminIndex - Admin 查看所有预订
         [Authorize(Roles = "Admin")]
@@ -251,7 +274,7 @@ namespace AssignmentTest1.Controllers
             booking.Status = "Cancelled";
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Booking cancelled successfully!";
+            TempData["Success"] = "Booking cancelled successfully!";
             return RedirectToAction("AdminIndex");
         }
 
@@ -272,7 +295,7 @@ namespace AssignmentTest1.Controllers
             booking.Status = "Confirmed";
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Booking confirmed successfully!";
+            TempData["Success"] = "Booking confirmed successfully!";
             return RedirectToAction("AdminIndex");
         }
     }
