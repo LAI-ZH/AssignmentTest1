@@ -1,7 +1,94 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home - FitBook";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto text-center">
+            <!-- Logo / Icon -->
+            <i class="fas fa-dumbbell" style="font-size: 72px; color: #4F6EF7;"></i>
+            <h1 class="display-3 fw-bold mt-3">FitBook</h1>
+            <p class="lead text-muted">Your Fitness Class Booking System</p>
+            <hr class="w-50 mx-auto" />
+
+            <!-- Description -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <i class="fas fa-search fa-2x text-primary"></i>
+                    <h5 class="mt-2">Browse Classes</h5>
+                    <p class="text-muted small">Find the perfect fitness class for you</p>
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-calendar-check fa-2x text-success"></i>
+                    <h5 class="mt-2">Book Instantly</h5>
+                    <p class="text-muted small">Book your spot with one click</p>
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-user-check fa-2x text-info"></i>
+                    <h5 class="mt-2">Track Progress</h5>
+                    <p class="text-muted small">View your booking history and upcoming classes</p>
+                </div>
+            </div>
+
+            <hr class="w-50 mx-auto" />
+
+            <!-- Quick Actions -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="mt-4">
+                    <p class="text-muted">Welcome back, <strong>@User.Identity.Name</strong>!</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary btn-lg">
+                                <i class="fas fa-chart-pie me-2"></i>Go to Dashboard
+                            </a>
+                        }
+                        else if (User.IsInRole("Trainer"))
+                        {
+                            <a asp-controller="Dashboard" asp-action="TrainerDashboard" class="btn btn-primary btn-lg">
+                                <i class="fas fa-chart-pie me-2"></i>Go to Dashboard
+                            </a>
+                        }
+                        else if (User.IsInRole("Member"))
+                        {
+                            <a asp-controller="Dashboard" asp-action="MemberDashboard" class="btn btn-primary btn-lg">
+                                <i class="fas fa-chart-pie me-2"></i>Go to Dashboard
+                            </a>
+                            <a asp-controller="Booking" asp-action="ClassCatalog" class="btn btn-success btn-lg">
+                                <i class="fas fa-search me-2"></i>Browse Classes
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="mt-4">
+                    <p class="text-muted">Get started with your fitness journey today!</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Get Started
+                        </a>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    </div>
+                </div>
+            }
+
+            <!-- Footer -->
+            <hr class="w-50 mx-auto" />
+            <p class="text-muted small">
+                <i class="fas fa-crown me-1"></i>
+                FitBook - Fitness Class Booking System
+                <br />
+                &copy; @DateTime.Now.Year - AMIT2014 Web and Mobile Systems
+            </p>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}
