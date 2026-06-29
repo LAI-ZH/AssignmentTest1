@@ -1,0 +1,93 @@
+﻿@model AssignmentTest1.Models.Entities.MembershipPlan
+
+@{
+    ViewData["Title"] = "Subscribe - " + Model.PlanName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white text-center">
+                    <h4><i class="fas fa-crown me-2"></i>Confirm Subscription</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h3>@Model.PlanName</h3>
+                        <div class="display-4 text-primary">RM @Model.Price.ToString("F2")</div>
+                        <p class="text-muted">@Model.DurationDays days</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <p><strong>✅ Included:</strong></p>
+                                <ul class="list-unstyled">
+                                    @if (Model.MaxBookings == 0)
+                                    {
+                                        <li><i class="fas fa-check-circle text-success"></i> Unlimited classes</li>
+                                    }
+                                    else
+                                    {
+                                        <li><i class="fas fa-check-circle text-success"></i> @Model.MaxBookings classes</li>
+                                    }
+                                    @if (Model.PTSessions > 0)
+                                    {
+                                        <li><i class="fas fa-check-circle text-success"></i> @Model.PTSessions private sessions</li>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.Description))
+                                    {
+                                        <li class="text-muted small mt-2">@Model.Description</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <p><strong>📋 Benefits:</strong></p>
+                                @if (!string.IsNullOrEmpty(Model.Benefits))
+                                {
+                                    <ul class="list-unstyled">
+                                        @foreach (var benefit in Model.Benefits.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+                                        {
+                                            <li><i class="fas fa-check-circle text-success"></i> @benefit.Trim()</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <p class="text-muted">No additional benefits listed.</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        By subscribing, you agree to the terms and conditions. This subscription will be active for <strong>@Model.DurationDays days</strong>.
+                    </div>
+
+                    <form asp-action="Subscribe" asp-route-id="@Model.PlanId" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="confirm" value="yes" />
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check me-2"></i>Confirm Subscription
+                            </button>
+                            <a asp-action="MemberPlans" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Plans
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}

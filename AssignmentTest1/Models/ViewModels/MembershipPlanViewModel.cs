@@ -22,11 +22,25 @@ namespace AssignmentTest1.Models.ViewModels
         [Display(Name = "Duration (Days)")]
         public int DurationDays { get; set; }
 
+        [Display(Name = "Max Bookings")]
+        [Range(0, 999, ErrorMessage = "Max bookings must be 0 for unlimited or between 1-999")]
+        public int MaxBookings { get; set; }
+
+        [Display(Name = "PT Sessions")]
+        [Range(0, 99, ErrorMessage = "PT sessions must be between 0-99")]
+        public int PTSessions { get; set; }
+
         [StringLength(500, ErrorMessage = "Description must be less than 500 characters")]
         [Display(Name = "Description")]
         public string? Description { get; set; }
 
+        [Display(Name = "Benefits (one per line)")]
+        public string? Benefits { get; set; }
+
         [Display(Name = "Active")]
         public bool IsActive { get; set; } = true;
+
+        [Display(Name = "Display Order")]
+        public int DisplayOrder { get; set; } = 0;
     }
 }

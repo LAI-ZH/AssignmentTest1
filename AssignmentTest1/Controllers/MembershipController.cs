@@ -1,193 +1,189 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AssignmentTest1.Data;
+using AssignmentTest1.Data;            
 using AssignmentTest1.Models.Entities;
-using AssignmentTest1.Models.ViewModels;
-
+using System.Security.Claims;
 namespace AssignmentTest1.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class MembershipController : Controller
     {
         private readonly FitBookDbContext _context;
-
         public MembershipController(FitBookDbContext context)
         {
             _context = context;
         }
+        // GET: /Membership/MemberPlans - 会员配套列表
+        [Authorize(Roles = "Member")]
+public async Task<IActionResult> MemberPlans()
+{
+    var plans = await _context.MembershipPlans
+        .Where(p => p.IsActive)
+        .OrderBy(p => p.DisplayOrder)
+        .ToListAsync();
 
-        // GET: /Membership/Plans - 套餐列表
-        public async Task<IActionResult> Plans()
-        {
-            var plans = await _context.MembershipPlans
-                .OrderBy(p => p.Price)
-                .ToListAsync();
-            return View(plans);
-        }
+    // 获取会员当前订阅
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (!string.IsNullOrEmpty(userIdClaim))
+    {
+        var memberId = int.Parse(userIdClaim);
+        var currentSubscription = await _context.MemberSubscriptions
+            .Include(s => s.Plan)
+            .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
 
-        // GET: /Membership/CreatePlan - 创建套餐页面
-        public IActionResult CreatePlan()
-        {
-            return View();
-        }
+        ViewBag.CurrentSubscription = currentSubscription;
+    }
 
-        // POST: /Membership/CreatePlan - 创建套餐
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePlan(MembershipPlanViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+    return View(plans);
+}
 
-            var plan = new MembershipPlan
-            {
-                PlanName = model.PlanName,
-                Price = model.Price,
-                DurationDays = model.DurationDays,
-                Description = model.Description,
-                IsActive = true
-            };
+// GET: /Membership/Subscribe/5 - 会员选择配套
+[Authorize(Roles = "Member")]
+public async Task<IActionResult> Subscribe(int id)
+{
+    var plan = await _context.MembershipPlans.FindAsync(id);
+    if (plan == null)
+    {
+        return NotFound();
+    }
 
-            _context.MembershipPlans.Add(plan);
-            await _context.SaveChangesAsync();
+    // 检查是否已有活跃订阅
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userIdClaim))
+    {
+        return RedirectToAction("Login", "Account");
+    }
+    var memberId = int.Parse(userIdClaim);
 
-            TempData["Success"] = $"Plan '{plan.PlanName}' created successfully!";
-            return RedirectToAction(nameof(Plans));
-        }
+    var existingSubscription = await _context.MemberSubscriptions
+        .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
 
-        // GET: /Membership/EditPlan/5 - 编辑套餐页面
-        public async Task<IActionResult> EditPlan(int id)
-        {
-            var plan = await _context.MembershipPlans.FindAsync(id);
-            if (plan == null)
-            {
-                return NotFound();
-            }
+    if (existingSubscription != null)
+    {
+        TempData["Error"] = "You already have an active subscription. Please cancel it first.";
+        return RedirectToAction("MemberPlans");
+    }
 
-            var model = new MembershipPlanViewModel
-            {
-                PlanId = plan.PlanId,
-                PlanName = plan.PlanName,
-                Price = plan.Price,
-                DurationDays = plan.DurationDays,
-                Description = plan.Description,
-                IsActive = plan.IsActive
-            };
+    ViewBag.Plan = plan;
+    return View(plan);
+}
 
-            return View(model);
-        }
+// POST: /Membership/Subscribe/5 - 确认购买配套
+[HttpPost]
+[ValidateAntiForgeryToken]
+[Authorize(Roles = "Member")]
+public async Task<IActionResult> Subscribe(int id, string confirm)
+{
+    var plan = await _context.MembershipPlans.FindAsync(id);
+    if (plan == null)
+    {
+        return NotFound();
+    }
 
-        // POST: /Membership/EditPlan/5 - 更新套餐
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPlan(int id, MembershipPlanViewModel model)
-        {
-            if (id != model.PlanId)
-            {
-                return NotFound();
-            }
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userIdClaim))
+    {
+        return RedirectToAction("Login", "Account");
+    }
+    var memberId = int.Parse(userIdClaim);
 
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+    // 再次检查是否有活跃订阅
+    var existingSubscription = await _context.MemberSubscriptions
+        .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
 
-            var plan = await _context.MembershipPlans.FindAsync(id);
-            if (plan == null)
-            {
-                return NotFound();
-            }
+    if (existingSubscription != null)
+    {
+        TempData["Error"] = "You already have an active subscription.";
+        return RedirectToAction("MemberPlans");
+    }
 
-            plan.PlanName = model.PlanName;
-            plan.Price = model.Price;
-            plan.DurationDays = model.DurationDays;
-            plan.Description = model.Description;
-            plan.IsActive = model.IsActive;
+    // 创建订阅
+    var subscription = new MemberSubscription
+    {
+        UserId = memberId,
+        PlanId = plan.PlanId,
+        StartDate = DateTime.Now,
+        EndDate = DateTime.Now.AddDays(plan.DurationDays),
+        Status = "Active",
+        BookingsUsed = 0,
+        PT_Used = 0
+    };
 
-            _context.Update(plan);
-            await _context.SaveChangesAsync();
+    _context.MemberSubscriptions.Add(subscription);
+    await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Plan '{plan.PlanName}' updated successfully!";
-            return RedirectToAction(nameof(Plans));
-        }
+    TempData["Success"] = $"You have successfully subscribed to '{plan.PlanName}'!";
+    return RedirectToAction("MySubscription");
+}
 
-        // POST: /Membership/DeletePlan/5 - 删除套餐
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeletePlan(int id)
-        {
-            var plan = await _context.MembershipPlans
-                .Include(p => p.Subscriptions)
-                .FirstOrDefaultAsync(p => p.PlanId == id);
+// GET: /Membership/MySubscription - 我的配套
+[Authorize(Roles = "Member")]
+public async Task<IActionResult> MySubscription()
+{
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userIdClaim))
+    {
+        return RedirectToAction("Login", "Account");
+    }
+    var memberId = int.Parse(userIdClaim);
 
-            if (plan == null)
-            {
-                return NotFound();
-            }
+    var subscription = await _context.MemberSubscriptions
+        .Include(s => s.Plan)
+        .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
 
-            // 检查是否有订阅
-            if (plan.Subscriptions != null && plan.Subscriptions.Any())
-            {
-                TempData["Error"] = $"Cannot delete '{plan.PlanName}' because it has active subscriptions.";
-                return RedirectToAction(nameof(Plans));
-            }
+    if (subscription == null)
+    {
+        // 检查是否有过期的订阅
+        var expiredSubscription = await _context.MemberSubscriptions
+            .Include(s => s.Plan)
+            .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Expired");
 
-            var planName = plan.PlanName;
-            _context.MembershipPlans.Remove(plan);
-            await _context.SaveChangesAsync();
+        ViewBag.ExpiredSubscription = expiredSubscription;
+        return View("NoSubscription");
+    }
 
-            TempData["Success"] = $"Plan '{planName}' deleted successfully!";
-            return RedirectToAction(nameof(Plans));
-        }
+    // 计算剩余天数
+    var daysRemaining = (subscription.EndDate - DateTime.Now).Days;
 
-        // GET: /Membership/Subscriptions - 所有订阅
-        public async Task<IActionResult> Subscriptions()
-        {
-            var subscriptions = await _context.MemberSubscriptions
-                .Include(s => s.User)
-                .Include(s => s.Plan)
-                .OrderByDescending(s => s.StartDate)
-                .ToListAsync();
-            return View(subscriptions);
-        }
+    // 计算剩余次数
+    var bookingsRemaining = subscription.Plan.MaxBookings == 0
+        ? 999
+        : subscription.Plan.MaxBookings - subscription.BookingsUsed;
 
-        // GET: /Membership/SubscriptionDetails/5 - 订阅详情
-        public async Task<IActionResult> SubscriptionDetails(int id)
-        {
-            var subscription = await _context.MemberSubscriptions
-                .Include(s => s.User)
-                .Include(s => s.Plan)
-                .FirstOrDefaultAsync(s => s.SubscriptionId == id);
+    ViewBag.DaysRemaining = daysRemaining;
+    ViewBag.BookingsRemaining = bookingsRemaining;
 
-            if (subscription == null)
-            {
-                return NotFound();
-            }
+    return View(subscription);
+}
 
-            return View(subscription);
-        }
+// POST: /Membership/CancelSubscription - 取消订阅
+[HttpPost]
+[ValidateAntiForgeryToken]
+[Authorize(Roles = "Member")]
+public async Task<IActionResult> CancelSubscription()
+{
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userIdClaim))
+    {
+        return RedirectToAction("Login", "Account");
+    }
+    var memberId = int.Parse(userIdClaim);
 
-        // POST: /Membership/CancelSubscription/5 - 取消订阅
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelSubscription(int id)
-        {
-            var subscription = await _context.MemberSubscriptions
-                .FirstOrDefaultAsync(s => s.SubscriptionId == id);
+    var subscription = await _context.MemberSubscriptions
+        .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
 
-            if (subscription == null)
-            {
-                return NotFound();
-            }
+    if (subscription == null)
+    {
+        TempData["Error"] = "No active subscription found.";
+        return RedirectToAction("MySubscription");
+    }
 
-            subscription.Status = "Cancelled";
-            await _context.SaveChangesAsync();
+    subscription.Status = "Cancelled";
+    subscription.CancelledAt = DateTime.Now;
+    await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Subscription cancelled successfully!";
-            return RedirectToAction(nameof(Subscriptions));
-        }
+    TempData["Success"] = "Your subscription has been cancelled.";
+    return RedirectToAction("MySubscription");
+}
     }
 }

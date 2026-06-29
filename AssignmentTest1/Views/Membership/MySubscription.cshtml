@@ -1,0 +1,160 @@
+﻿@model AssignmentTest1.Models.Entities.MemberSubscription
+
+@{
+    ViewData["Title"] = "My Subscription";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .status-active {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .status-expired {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+
+    .status-cancelled {
+        background: #FFF3CD;
+        color: #856404;
+    }
+
+    .stat-box {
+        text-align: center;
+        padding: 1.25rem;
+        background: #F9FAFB;
+        border-radius: 8px;
+        border: 0.5px solid #E5E7EB;
+    }
+
+        .stat-box .stat-number {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1A1A2E;
+        }
+
+        .stat-box .stat-label {
+            font-size: 13px;
+            color: #6B7280;
+        }
+</style>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-user-check me-2"></i>My Subscription</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Plan Info -->
+                    <div class="text-center mb-4">
+                        <h3>@Model.Plan?.PlanName</h3>
+                        <span class="badge status-active">Active</span>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="stat-box">
+                                <div class="stat-number">RM @Model.Plan?.Price.ToString("F2")</div>
+                                <div class="stat-label">Price</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-box">
+                                <div class="stat-number">@ViewBag.DaysRemaining</div>
+                                <div class="stat-label">Days Remaining</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-box">
+                                <div class="stat-number">@ViewBag.BookingsRemaining</div>
+                                <div class="stat-label">
+                                    @if (Model.Plan?.MaxBookings == 0)
+                                    {
+                                        <span>Unlimited Classes</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Classes Remaining</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="mt-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Start Date:</strong> @Model.StartDate.ToString("dd/MM/yyyy")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>End Date:</strong> @Model.EndDate.ToString("dd/MM/yyyy")</p>
+                            </div>
+                        </div>
+                        @if (Model.Plan?.MaxBookings > 0)
+                        {
+                            <p><strong>Classes Used:</strong> @Model.BookingsUsed / @Model.Plan.MaxBookings</p>
+                        }
+                        @if (Model.Plan?.PTSessions > 0)
+                        {
+                            <p><strong>PT Sessions Used:</strong> @Model.PT_Used / @Model.Plan.PTSessions</p>
+                        }
+                    </div>
+
+                    <!-- Benefits -->
+                    @if (!string.IsNullOrEmpty(Model.Plan?.Benefits))
+                    {
+                        <hr />
+                        <h6><i class="fas fa-list me-2"></i>Benefits</h6>
+                        <ul class="list-unstyled">
+                            @foreach (var benefit in Model.Plan.Benefits.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+                            {
+                                <li><i class="fas fa-check-circle text-success me-2"></i>@benefit.Trim()</li>
+                            }
+                        </ul>
+                    }
+
+                    <!-- Actions -->
+                    <hr />
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Booking" asp-action="ClassCatalog" class="btn btn-success">
+                            <i class="fas fa-search me-2"></i>Browse Classes
+                        </a>
+                        <form asp-action="CancelSubscription" method="post" onsubmit="return confirm('Are you sure you want to cancel your subscription?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-times me-2"></i>Cancel Subscription
+                            </button>
+                        </form>
+                        <a asp-action="MemberPlans" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

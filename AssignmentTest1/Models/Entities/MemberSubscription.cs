@@ -25,6 +25,12 @@ namespace AssignmentTest1.Models.Entities
         public DateTime EndDate { get; set; }
 
         [Required]
-        public string Status { get; set; } = "Active"; // Active / Expired
+        public string Status { get; set; } = "Active"; // Active / Expired / Cancelled
+
+        // ✅ 新增字段
+        public int BookingsUsed { get; set; } = 0;
+        public int PT_Used { get; set; } = 0;
+        public DateTime? CancelledAt { get; set; }
+        public bool AutoRenew { get; set; } = false;
     }
 }
