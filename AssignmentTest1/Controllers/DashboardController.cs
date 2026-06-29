@@ -53,7 +53,7 @@ namespace AssignmentTest1.Controllers
                 .Where(cs => cs.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
                 .OrderBy(cs => cs.ScheduleDate)
                 .ThenBy(cs => cs.StartTime)
-                .Take(5)
+                .Take(2)
                 .ToListAsync();
             ViewBag.UpcomingClasses = upcomingClasses;
 
@@ -63,6 +63,7 @@ namespace AssignmentTest1.Controllers
         // ===== TRAINER DASHBOARD =====
         [Authorize(Roles = "Trainer")]
         public async Task<IActionResult> TrainerDashboard()
+
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim))
@@ -86,7 +87,7 @@ namespace AssignmentTest1.Controllers
                 .Where(cs => cs.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
                 .OrderBy(cs => cs.ScheduleDate)
                 .ThenBy(cs => cs.StartTime)
-                .Take(10)
+                .Take(5)
                 .ToListAsync();
             ViewBag.UpcomingSchedules = upcomingSchedules;
 
