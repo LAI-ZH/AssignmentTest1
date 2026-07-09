@@ -136,16 +136,12 @@ namespace AssignmentTest1.Controllers
                 ModelState.AddModelError("Email", "Email already registered");
                 return View(model);
             }
-
-            bool isFirstUser = !await _context.Users.AnyAsync();
-            string role = isFirstUser ? "Admin" : "Member";
-
             var user = new User
             {
                 FullName = model.FullName,
                 Email = model.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-                Role = role,
+                Role = "Member",
                 Phone = model.Phone,
                 CreatedAt = DateTime.Now,
                 IsLocked = false,

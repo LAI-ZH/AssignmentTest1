@@ -25,6 +25,7 @@
         transition: transform 0.2s, box-shadow 0.2s;
         border-left: 4px solid #4F6EF7;
         cursor: pointer;
+        height: 100%;
     }
 
         .class-card:hover {
@@ -54,6 +55,11 @@
     .badge-full {
         background: #FCEBEB;
         color: #A32D2D;
+    }
+
+    .badge-waitlist {
+        background: #FFF3CD;
+        color: #856404;
     }
 </style>
 
@@ -92,8 +98,12 @@
         <div class="row">
             @foreach (var item in Model)
             {
-                var upcomingCount = item.Schedules?.Count(s => s.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now)) ?? 0;
+                var upcomingSessions = item.Schedules?.Where(s => s.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now)).ToList();
+                var upcomingCount = upcomingSessions?.Count ?? 0;
                 var totalBookings = item.Schedules?.Sum(s => s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) ?? 0;
+
+                // ✅ 检查是否有任何 upcoming session 还有空位
+                var hasAvailableSlot = upcomingSessions?.Any(s => (s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) < item.MaxCapacity) ?? false;
 
                 <div class="col-md-4 mb-4">
                     <div class="card class-card h-100 shadow-sm" onclick="location.href='@Url.Action("ClassDetails", new { id = item.ClassId })'">
@@ -105,13 +115,17 @@
                             <p class="class-meta"><i class="fas fa-calendar-alt"></i>@upcomingCount upcoming sessions</p>
                         </div>
                         <div class="card-footer bg-transparent">
-                            @if (upcomingCount > 0)
+                            @if (upcomingCount > 0 && hasAvailableSlot)
                             {
                                 <span class="badge badge-available">Available</span>
                             }
+                            else if (upcomingCount > 0 && !hasAvailableSlot)
+                            {
+                                <span class="badge badge-full">Full - Join Waitlist</span>
+                            }
                             else
                             {
-                                <span class="badge badge-full">No sessions</span>
+                                <span class="badge badge-waitlist">No sessions</span>
                             }
                             <span class="float-end text-muted small">Click to view details</span>
                         </div>

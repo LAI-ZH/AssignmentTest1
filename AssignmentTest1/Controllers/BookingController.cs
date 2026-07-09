@@ -17,10 +17,6 @@ namespace AssignmentTest1.Controllers
             _context = context;
         }
 
-        // ============================================================
-        // MEMBER FUNCTIONS
-        // ============================================================
-
         // GET: /Booking/ClassCatalog - 浏览课程目录
         [Authorize(Roles = "Member")]
         public async Task<IActionResult> ClassCatalog()
@@ -66,13 +62,17 @@ namespace AssignmentTest1.Controllers
                     .Where(s => s.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
                     .OrderBy(s => s.ScheduleDate)
                     .ThenBy(s => s.StartTime)
-                    .Select(s => new ScheduleWithBookingInfo
+                    .Select(async s => new ScheduleWithBookingInfo
                     {
                         Schedule = s,
                         ConfirmedCount = s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0,
                         IsFull = (s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) >= fitnessClass.MaxCapacity,
-                        HasBooked = memberId.HasValue && (s.Bookings?.Any(b => b.MemberId == memberId.Value && b.Status != "Cancelled") ?? false)
+                        HasBooked = memberId.HasValue && (s.Bookings?.Any(b => b.MemberId == memberId.Value && b.Status != "Cancelled") ?? false),
+                        WaitlistCount = await _context.Waitlists
+                            .Where(w => w.ScheduleId == s.ScheduleId && !w.IsPromoted)
+                            .CountAsync()
                     })
+                    .Select(t => t.Result)
                     .ToList()
             };
 
@@ -147,6 +147,68 @@ namespace AssignmentTest1.Controllers
 
             TempData["Success"] = $"Successfully booked '{schedule.Class.ClassName}'!";
             return RedirectToAction("MyBookings");
+        }
+
+        // POST: /Booking/JoinWaitlist - 加入 Waitlist
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> JoinWaitlist(int scheduleId)
+        {
+            var schedule = await _context.ClassSchedules
+                .Include(s => s.Class)
+                .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
+
+            if (schedule == null)
+            {
+                return NotFound();
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var memberId = int.Parse(userIdClaim);
+
+            // 检查是否已经在 waitlist
+            var existingWaitlist = await _context.Waitlists
+                .FirstOrDefaultAsync(w => w.MemberId == memberId && w.ScheduleId == scheduleId && !w.IsPromoted);
+
+            if (existingWaitlist != null)
+            {
+                TempData["Info"] = "You are already on the waitlist for this class.";
+                return RedirectToAction("ClassDetails", new { id = schedule.ClassId });
+            }
+
+            // 检查是否已经有预订
+            var existingBooking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.MemberId == memberId && b.ScheduleId == scheduleId && b.Status != "Cancelled");
+
+            if (existingBooking != null)
+            {
+                TempData["Error"] = "You already have a booking for this class.";
+                return RedirectToAction("ClassDetails", new { id = schedule.ClassId });
+            }
+
+            // 加入 waitlist
+            var waitlist = new Waitlist
+            {
+                MemberId = memberId,
+                ScheduleId = scheduleId,
+                JoinedAt = DateTime.Now,
+                IsPromoted = false
+            };
+
+            _context.Waitlists.Add(waitlist);
+            await _context.SaveChangesAsync();
+
+            var waitlistCount = await _context.Waitlists
+                .Where(w => w.ScheduleId == scheduleId && !w.IsPromoted)
+                .CountAsync();
+
+            TempData["Success"] = $"You have been added to the waitlist (Position: {waitlistCount})!";
+            return RedirectToAction("ClassDetails", new { id = schedule.ClassId });
         }
 
         // GET: /Booking/MyBookings - 我的预订
@@ -237,6 +299,27 @@ namespace AssignmentTest1.Controllers
             return RedirectToAction("MyBookings");
         }
 
+        // GET: /Booking/WaitlistStatus - 查看我的 Waitlist 状态
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> WaitlistStatus()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var memberId = int.Parse(userIdClaim);
+
+            var waitlists = await _context.Waitlists
+                .Where(w => w.MemberId == memberId)
+                .Include(w => w.Schedule)
+                    .ThenInclude(s => s.Class)
+                .OrderBy(w => w.JoinedAt)
+                .ToListAsync();
+
+            return View(waitlists);
+        }
+
         // ============================================================
         // ADMIN FUNCTIONS
         // ============================================================
@@ -273,6 +356,29 @@ namespace AssignmentTest1.Controllers
 
             booking.Status = "Cancelled";
             await _context.SaveChangesAsync();
+
+            // 检查 Waitlist
+            var waitlist = await _context.Waitlists
+                .Where(w => w.ScheduleId == booking.ScheduleId && !w.IsPromoted)
+                .OrderBy(w => w.JoinedAt)
+                .FirstOrDefaultAsync();
+
+            if (waitlist != null)
+            {
+                waitlist.IsPromoted = true;
+
+                var newBooking = new Booking
+                {
+                    MemberId = waitlist.MemberId,
+                    ScheduleId = booking.ScheduleId,
+                    BookedAt = DateTime.Now,
+                    Status = "Confirmed"
+                };
+                _context.Bookings.Add(newBooking);
+                await _context.SaveChangesAsync();
+
+                TempData["Info"] = "A waitlist member has been promoted.";
+            }
 
             TempData["Success"] = "Booking cancelled successfully!";
             return RedirectToAction("AdminIndex");

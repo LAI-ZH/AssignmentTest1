@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using AssignmentTest1.Data;
+using AssignmentTest1.Models.Entities;
+using BCrypt.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +44,47 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<FitBookDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        var adminExists = await context.Users.AnyAsync(u => u.Email == "testwebbased465@gmail.com");
+
+        if (!adminExists)
+        {
+            var admin = new User
+            {
+                FullName = "Admin User",
+                Email = "testwebbased465@gmail.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123"),
+                Role = "Admin",
+                Phone = "012-3456789",
+                CreatedAt = DateTime.Now,
+                IsLocked = false,
+                FailedLoginCount = 0
+            };
+
+            context.Users.Add(admin);
+            await context.SaveChangesAsync();
+
+            logger.LogInformation("✅ Admin user seeded successfully!");
+            logger.LogInformation("   Email: testwebbased465@gmail.com");
+            logger.LogInformation("   Password: Admin123");
+        }
+        else
+        {
+            logger.LogInformation("ℹ️ Admin user already exists.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "❌ Error seeding admin user.");
+    }
+}
 
 app.MapControllerRoute(
     name: "default",

@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Register - FitBook";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    // Layout = "~/Views/Shared/_Layout.cshtml"；
 }
 
 <div class="container mt-5">
@@ -12,12 +12,6 @@
                 <div class="card-header bg-success text-white text-center py-3">
                     <h4><i class="fas fa-user-plus me-2"></i>Register for FitBook</h4>
                 </div>
-                <div class="card-body p-4">
-                    <div class="alert alert-info alert-dismissible fade show">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Note:</strong> The first registered user becomes <strong>Admin</strong>!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
 
                     <form asp-action="Register" method="post">
                         @Html.AntiForgeryToken()
@@ -26,34 +20,43 @@
 
                         <div class="mb-3">
                             <label asp-for="FullName" class="form-label fw-bold"></label>
-                            <input asp-for="FullName" class="form-control form-control-lg" placeholder="Enter your full name" />
+                            <input asp-for="FullName" class="form-control" placeholder="Enter your full name" />
                             <span asp-validation-for="FullName" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="Email" class="form-label fw-bold"></label>
-                            <input asp-for="Email" class="form-control form-control-lg" placeholder="Enter your email" />
+                            <input asp-for="Email" class="form-control" placeholder="Enter your email" />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="Phone" class="form-label fw-bold"></label>
-                            <input asp-for="Phone" class="form-control form-control-lg" placeholder="Enter your phone number (optional)" />
+                            <input asp-for="Phone" class="form-control" placeholder="Enter your phone number (optional)" />
                             <span asp-validation-for="Phone" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label fw-bold"></label>
-                            <input asp-for="Password" class="form-control form-control-lg" placeholder="Create a password (min 6 characters)" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-bold"></label>
+                        <div class="password-toggle">
+                            <input asp-for="Password" class="form-control" placeholder="Create a password (min 6 characters)" id="registerPassword" />
+                            <button type="button" class="toggle-icon" id="toggleRegisterPassword" tabindex="-1">
+                                <i class="fas fa-eye" id="registerEyeIcon"></i>
+                            </button>
                         </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
 
-                        <div class="mb-3">
-                            <label asp-for="ConfirmPassword" class="form-label fw-bold"></label>
-                            <input asp-for="ConfirmPassword" class="form-control form-control-lg" placeholder="Confirm your password" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label fw-bold"></label>
+                        <div class="password-toggle">
+                            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm your password" id="registerConfirmPassword" />
+                            <button type="button" class="toggle-icon" id="toggleRegisterConfirmPassword" tabindex="-1">
+                                <i class="fas fa-eye" id="registerConfirmEyeIcon"></i>
+                            </button>
                         </div>
-
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success btn-lg">
                                 <i class="fas fa-user-plus me-2"></i>Register
@@ -76,4 +79,36 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+}
+<script>
+    // Register Password toggle
+    document.getElementById('toggleRegisterPassword').addEventListener('click', function() {
+        var passwordInput = document.getElementById('registerPassword');
+        var eyeIcon = document.getElementById('registerEyeIcon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.className = 'fas fa-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.className = 'fas fa-eye';
+        }
+    });
+
+    // Register Confirm Password toggle
+    document.getElementById('toggleRegisterConfirmPassword').addEventListener('click', function() {
+        var passwordInput = document.getElementById('registerConfirmPassword');
+        var eyeIcon = document.getElementById('registerConfirmEyeIcon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.className = 'fas fa-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.className = 'fas fa-eye';
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 }

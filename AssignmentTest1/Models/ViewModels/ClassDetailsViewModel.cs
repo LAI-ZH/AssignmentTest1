@@ -14,5 +14,6 @@ namespace AssignmentTest1.Models.ViewModels
         public int ConfirmedCount { get; set; }
         public bool IsFull { get; set; }
         public bool HasBooked { get; set; }
+        public int WaitlistCount { get; set; }
     }
 }
