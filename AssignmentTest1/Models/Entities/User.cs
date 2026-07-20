@@ -8,13 +8,12 @@ namespace AssignmentTest1.Models.Entities
         [Key]
         public int UserId { get; set; }
 
-        [Required(ErrorMessage = "Full name is required")]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
-        [Display(Name = "Full Name")]
+        [Required]
+        [StringLength(100)]
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [Required]
+        [EmailAddress]
         [StringLength(100)]
         public string Email { get; set; } = string.Empty;
 
@@ -22,13 +21,16 @@ namespace AssignmentTest1.Models.Entities
         public string PasswordHash { get; set; } = string.Empty;
 
         [Required]
-        public string Role { get; set; } = "Member"; // Admin, Trainer, Member
+        public string Role { get; set; } = "Member";
 
-        [Phone(ErrorMessage = "Invalid phone number")]
+        [Phone]
         [StringLength(20)]
         public string? Phone { get; set; }
 
         public string? ProfilePhoto { get; set; }
+
+        [StringLength(10)]
+        public string? Gender { get; set; }
 
         public bool IsLocked { get; set; } = false;
 
@@ -36,7 +38,11 @@ namespace AssignmentTest1.Models.Entities
 
         public DateTime? LockUntil { get; set; }
 
+        public string? LockReason { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? LastLoginAt { get; set; }
 
         // Navigation Properties
         public ICollection<MemberSubscription>? Subscriptions { get; set; }

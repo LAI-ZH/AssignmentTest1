@@ -1,0 +1,139 @@
+﻿
+@{
+    ViewData["Title"] = "Choose Plan Type";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .plan-type-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        height: 100%;
+        border: 2px solid #E5E7EB;
+    }
+
+        .plan-type-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border-color: #4F6EF7;
+        }
+
+        .plan-type-card .card-icon {
+            font-size: 48px;
+            color: #4F6EF7;
+        }
+
+        .plan-type-card .card-title {
+            font-weight: 600;
+            color: #1A1A2E;
+        }
+
+        .plan-type-card .card-text {
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .plan-type-card .badge-example {
+            background: #F3F4F6;
+            color: #6B7280;
+            font-weight: 400;
+        }
+</style>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-plus me-2"></i>Create Membership Plan</h4>
+                    <p class="mb-0 text-white-50">Choose the type of plan you want to create</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <!-- 1. Monthly with Limit -->
+                        <div class="col-md-4">
+                            <div class="card plan-type-card" onclick="location.href='@Url.Action("CreatePlan", new { type = "monthly" })'">
+                                <div class="card-body text-center">
+                                    <div class="card-icon"><i class="fas fa-calendar-alt"></i></div>
+                                    <h5 class="card-title mt-3">Monthly + Limit</h5>
+                                    <p class="card-text">Monthly subscription with class limit</p>
+                                    <span class="badge badge-example">e.g. Basic: RM79 / 4 classes</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Class Pass -->
+                        <div class="col-md-4">
+                            <div class="card plan-type-card" onclick="location.href='@Url.Action("CreatePlan", new { type = "pass" })'">
+                                <div class="card-body text-center">
+                                    <div class="card-icon"><i class="fas fa-ticket-alt"></i></div>
+                                    <h5 class="card-title mt-3">Class Pass</h5>
+                                    <p class="card-text">Pay per class, no expiry date</p>
+                                    <span class="badge badge-example">e.g. 10 Class Pass: RM299</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Unlimited -->
+                        <div class="col-md-4">
+                            <div class="card plan-type-card" onclick="location.href='@Url.Action("CreatePlan", new { type = "unlimited" })'">
+                                <div class="card-body text-center">
+                                    <div class="card-icon"><i class="fas fa-infinity"></i></div>
+                                    <h5 class="card-title mt-3">Unlimited</h5>
+                                    <p class="card-text">Pay monthly, unlimited classes</p>
+                                    <span class="badge badge-example">e.g. Unlimited: RM299/month</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Long-term with Loyalty -->
+                        <div class="col-md-4">
+                            <div class="card plan-type-card" onclick="location.href='@Url.Action("CreatePlan", new { type = "longterm" })'">
+                                <div class="card-body text-center">
+                                    <div class="card-icon"><i class="fas fa-crown"></i></div>
+                                    <h5 class="card-title mt-3">Long-term + Loyalty</h5>
+                                    <p class="card-text">6 months / 1 year with loyalty discount</p>
+                                    <span class="badge badge-example">e.g. 6 Months: RM1599</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Peak / Off-Peak -->
+                        <div class="col-md-4">
+                            <div class="card plan-type-card" onclick="location.href='@Url.Action("CreatePlan", new { type = "peak" })'">
+                                <div class="card-body text-center">
+                                    <div class="card-icon"><i class="fas fa-clock"></i></div>
+                                    <h5 class="card-title mt-3">Peak / Off-Peak</h5>
+                                    <p class="card-text">Different pricing for different times</p>
+                                    <span class="badge badge-example">e.g. Off-Peak: RM69</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Custom -->
+                        <div class="col-md-4">
+                            <div class="card plan-type-card" onclick="location.href='@Url.Action("CreatePlan", new { type = "custom" })'">
+                                <div class="card-body text-center">
+                                    <div class="card-icon"><i class="fas fa-pen-fancy"></i></div>
+                                    <h5 class="card-title mt-3">Custom</h5>
+                                    <p class="card-text">Build your own plan from scratch</p>
+                                    <span class="badge badge-example">Full control</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="text-center">
+                        <a asp-action="Plans" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

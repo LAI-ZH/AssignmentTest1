@@ -1,0 +1,164 @@
+﻿@model AssignmentTest1.Models.Entities.User
+
+@{
+    ViewData["Title"] = "User Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .detail-row {
+        display: flex;
+        padding: 0.5rem 0;
+        border-bottom: 0.5px solid #F3F4F6;
+    }
+
+    .detail-label {
+        width: 150px;
+        font-weight: 500;
+        color: #6B7280;
+    }
+
+    .detail-value {
+        flex: 1;
+        color: #1A1A2E;
+    }
+
+    .badge-admin {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+
+    .badge-trainer {
+        background: #E6F1FB;
+        color: #185FA5;
+    }
+
+    .badge-member {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .badge-active {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .badge-locked {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-user-circle me-2"></i>User Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">User ID</span>
+                        <span class="detail-value">@Model.UserId</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Full Name</span>
+                        <span class="detail-value">@Model.FullName</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">@Model.Email</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">@(Model.Phone ?? "Not provided")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Role</span>
+                        <span class="detail-value">
+                            <span class="badge @(Model.Role == "Admin" ? "badge-admin" : Model.Role == "Trainer" ? "badge-trainer" : "badge-member")">
+                                @Model.Role
+                            </span>
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Account Status</span>
+                        <span class="detail-value">
+                            @if (Model.IsLocked)
+                            {
+                                <span class="badge badge-locked">🔒 Locked</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-active">✅ Active</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Created At</span>
+                        <span class="detail-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+
+                    <!-- Lock Reason -->
+                    @if (!string.IsNullOrEmpty(Model.LockReason))
+                    {
+                        <div class="detail-row">
+                            <span class="detail-label">Lock Reason</span>
+                            <span class="detail-value text-danger">@Model.LockReason</span>
+                        </div>
+                    }
+
+                    @if (Model.Bookings != null && Model.Bookings.Any())
+                    {
+                        <hr />
+                        <h5><i class="fas fa-calendar-check me-2"></i>Booking History</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var booking in Model.Bookings.Take(5))
+                                    {
+                                        <tr>
+                                            <td>@booking.Schedule?.Class?.ClassName</td>
+                                            <td>@booking.Schedule?.ScheduleDate.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                <span class="badge @(booking.Status == "Confirmed" ? "bg-success" : booking.Status == "Cancelled" ? "bg-danger" : "bg-secondary")">
+                                                    @booking.Status
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <div class="mt-4 d-flex gap-2">
+                        @if (User.Identity?.Name == Model.Email)
+                        {
+                            <!-- 自己的账户：显示 Edit -->
+                            <a asp-action="Edit" asp-route-id="@Model.UserId" class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
+                            </a>
+                        }
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}

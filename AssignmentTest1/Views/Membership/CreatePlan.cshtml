@@ -1,8 +1,9 @@
 ﻿@model AssignmentTest1.Models.ViewModels.MembershipPlanViewModel
 
 @{
-    ViewData["Title"] = "Create Membership Plan";
+    ViewData["Title"] = "Create Plan";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var planType = ViewBag.PlanType as string ?? "custom";
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -13,17 +14,26 @@
         border-radius: 8px;
         padding: 1.25rem;
         margin-bottom: 1.5rem;
+        border: 0.5px solid #E5E7EB;
     }
-    .form-section h6 {
-        font-weight: 600;
-        color: #1A1A2E;
-        margin-bottom: 0.75rem;
-    }
-    .form-section .text-muted {
+
+        .form-section h6 {
+            font-weight: 600;
+            color: #1A1A2E;
+            margin-bottom: 0.75rem;
+        }
+
+    .plan-type-badge {
+        display: inline-block;
+        background: #E6F1FB;
+        color: #185FA5;
+        padding: 4px 12px;
+        border-radius: 99px;
         font-size: 13px;
-        color: #6B7280;
+        font-weight: 500;
     }
-    .benefits-hint {
+
+    .field-hint {
         font-size: 12px;
         color: #6B7280;
         margin-top: 0.25rem;
@@ -35,7 +45,10 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h4><i class="fas fa-plus me-2"></i>Create Membership Plan</h4>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4><i class="fas fa-plus me-2"></i>Create Plan</h4>
+                        <span class="plan-type-badge">@planType.ToUpper()</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <form asp-action="CreatePlan" method="post">
@@ -46,9 +59,10 @@
                         <!-- ===== Basic Info ===== -->
                         <div class="form-section">
                             <h6><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
+
                             <div class="mb-3">
                                 <label asp-for="PlanName" class="form-label fw-bold"></label>
-                                <input asp-for="PlanName" class="form-control" placeholder="e.g. Basic, Premium, VIP" />
+                                <input asp-for="PlanName" class="form-control" />
                                 <span asp-validation-for="PlanName" class="text-danger"></span>
                             </div>
 
@@ -61,29 +75,42 @@
                                 <span asp-validation-for="Price" class="text-danger"></span>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="DurationDays" class="form-label fw-bold"></label>
-                                <div class="input-group">
-                                    <input asp-for="DurationDays" class="form-control" type="number" placeholder="30" />
-                                    <span class="input-group-text">days</span>
+                            <!-- Duration Days -->
+                            @if (planType != "pass")
+                            {
+                                <div class="mb-3">
+                                    <label asp-for="DurationDays" class="form-label fw-bold"></label>
+                                    <div class="input-group">
+                                        <input asp-for="DurationDays" class="form-control" type="number" />
+                                        <span class="input-group-text">days</span>
+                                    </div>
+                                    <span class="field-hint">e.g. 30 for monthly, 180 for 6 months, 365 for 1 year</span>
+                                    <span asp-validation-for="DurationDays" class="text-danger"></span>
                                 </div>
-                                <span class="text-muted small">e.g. 30, 90, 365</span>
-                                <span asp-validation-for="DurationDays" class="text-danger"></span>
-                            </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="DurationDays" value="0" />
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Class Pass:</strong> No expiry date (duration = 0 days)
+                                </div>
+                            }
                         </div>
 
-                        <!-- ===== Booking & PT ===== -->
+                        <!-- ===== Class & PT ===== -->
                         <div class="form-section">
-                            <h6><i class="fas fa-calendar-check me-2"></i>Booking & PT Sessions</h6>
+                            <h6><i class="fas fa-calendar-check me-2"></i>Class & PT Sessions</h6>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="MaxBookings" class="form-label fw-bold"></label>
                                         <div class="input-group">
-                                            <input asp-for="MaxBookings" class="form-control" type="number" placeholder="0" />
-                                            <span class="input-group-text">sessions</span>
+                                            <input asp-for="MaxBookings" class="form-control" type="number" />
+                                            <span class="input-group-text">classes</span>
                                         </div>
-                                        <span class="text-muted small">0 = Unlimited</span>
+                                        <span class="field-hint">0 = Unlimited</span>
                                         <span asp-validation-for="MaxBookings" class="text-danger"></span>
                                     </div>
                                 </div>
@@ -91,19 +118,54 @@
                                     <div class="mb-3">
                                         <label asp-for="PTSessions" class="form-label fw-bold"></label>
                                         <div class="input-group">
-                                            <input asp-for="PTSessions" class="form-control" type="number" placeholder="0" />
+                                            <input asp-for="PTSessions" class="form-control" type="number" />
                                             <span class="input-group-text">sessions</span>
                                         </div>
-                                        <span class="text-muted small">0 = Not included</span>
+                                        <span class="field-hint">0 = Not included</span>
                                         <span asp-validation-for="PTSessions" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- ===== Description & Benefits ===== -->
+                        <!-- ===== Extras (Long-term only) ===== -->
+                        @if (planType == "longterm")
+                        {
+                            <div class="form-section">
+                                <h6><i class="fas fa-check-circle me-2"></i>Additional Benefits</h6>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3 form-check">
+                                            <input asp-for="IncludesInbody" class="form-check-input" />
+                                            <label asp-for="IncludesInbody" class="form-check-label">Inbody Test</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3 form-check">
+                                            <input asp-for="IncludesGymAccess" class="form-check-input" />
+                                            <label asp-for="IncludesGymAccess" class="form-check-label">Gym Area Access</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Excludes" class="form-label fw-bold">Excludes</label>
+                                    <input asp-for="Excludes" class="form-control" placeholder="e.g. Foundation Course" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="LoyaltyDiscount" class="form-label fw-bold">Loyalty Discount</label>
+                                    <textarea asp-for="LoyaltyDiscount" class="form-control" rows="3" placeholder="1st Year: 5%&#10;2nd Year: 10%&#10;3rd Year: 15%"></textarea>
+                                    <span class="field-hint">Enter each on a new line</span>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- ===== Description ===== -->
                         <div class="form-section">
-                            <h6><i class="fas fa-list me-2"></i>Description & Benefits</h6>
+                            <h6><i class="fas fa-list me-2"></i>Description</h6>
+
                             <div class="mb-3">
                                 <label asp-for="Description" class="form-label fw-bold"></label>
                                 <textarea asp-for="Description" class="form-control" rows="2" placeholder="Brief description of this plan"></textarea>
@@ -111,16 +173,16 @@
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Benefits" class="form-label fw-bold"></label>
-                                <textarea asp-for="Benefits" class="form-control" rows="4" placeholder="Enter each benefit on a new line&#10;e.g.&#10;Access to all gym facilities&#10;Unlimited classes&#10;2 free PT sessions"></textarea>
-                                <span class="benefits-hint"><i class="fas fa-info-circle me-1"></i>Enter each benefit on a new line</span>
-                                <span asp-validation-for="Benefits" class="text-danger"></span>
+                                <label asp-for="Benefits" class="form-label fw-bold">Benefits (one per line)</label>
+                                <textarea asp-for="Benefits" class="form-control" rows="3" placeholder="Access to all gym facilities&#10;Unlimited classes&#10;2 free PT sessions"></textarea>
+                                <span class="field-hint">Enter each benefit on a new line</span>
                             </div>
                         </div>
 
-                        <!-- ===== Status ===== -->
+                        <!-- ===== Settings ===== -->
                         <div class="form-section">
                             <h6><i class="fas fa-cog me-2"></i>Settings</h6>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3 form-check">
@@ -131,9 +193,8 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="DisplayOrder" class="form-label fw-bold"></label>
-                                        <input asp-for="DisplayOrder" class="form-control" type="number" placeholder="0" />
-                                        <span class="text-muted small">Lower number = shown first</span>
-                                        <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+                                        <input asp-for="DisplayOrder" class="form-control" type="number" />
+                                        <span class="field-hint">Lower number = shown first</span>
                                     </div>
                                 </div>
                             </div>
@@ -143,7 +204,9 @@
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-save me-2"></i>Create Plan
                             </button>
-                            <a asp-action="Plans" class="btn btn-outline-secondary">Back to Plans</a>
+                            <a asp-action="ChoosePlanType" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Plan Types
+                            </a>
                         </div>
                     </form>
                 </div>

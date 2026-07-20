@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Register - FitBook";
-    // Layout = "~/Views/Shared/_Layout.cshtml"；
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5">
@@ -28,6 +28,17 @@
                             <label asp-for="Email" class="form-label fw-bold"></label>
                             <input asp-for="Email" class="form-control" placeholder="Enter your email" />
                             <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Gender" class="form-label fw-bold"></label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">

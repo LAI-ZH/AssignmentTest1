@@ -95,7 +95,7 @@
 <div class="container mt-4">
     <div class="page-header">
         <h2><i class="fas fa-crown me-2"></i>Membership Plans</h2>
-        <a asp-action="CreatePlan" class="btn btn-primary">
+        <a asp-action="ChoosePlanType" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Create Plan
         </a>
     </div>
@@ -115,6 +115,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
+
 
     @if (Model.Any())
     {
@@ -165,10 +166,41 @@
                                 }
                             </div>
 
+                            <div class="plan-tags">
+                                @if (item.MaxBookings == 0)
+                                {
+                                    <span class="badge badge-unlimited">♾️ Unlimited</span>
+                                }
+                                @if (item.IncludesInbody)
+                                {
+                                    <span class="badge badge-inbody">⚖️ Inbody Test</span>
+                                }
+                                @if (item.IncludesGymAccess)
+                                {
+                                    <span class="badge badge-gym">🏋️ Gym Access</span>
+                                }
+                                @if (item.PTSessions > 0)
+                                {
+                                    <span class="badge badge-pt">💪 @item.PTSessions PT</span>
+                                }
+                            </div>
+
+
                             <!-- Description -->
                             @if (!string.IsNullOrEmpty(item.Description))
                             {
                                 <p class="text-muted small mt-2">@item.Description</p>
+                            }
+
+                            @if (!string.IsNullOrEmpty(item.LoyaltyDiscount))
+                            {
+                                <div class="loyalty-text small mt-1">
+                                    <i class="fas fa-gift me-1"></i>
+                                    @foreach (var line in item.LoyaltyDiscount.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        <div>• @line.Trim()</div>
+                                    }
+                                </div>
                             }
 
                             <!-- Benefits -->
@@ -210,7 +242,7 @@
     {
         <div class="text-center py-5">
             <i class="fas fa-crown fa-3x text-muted mb-3"></i>
-            <p class="text-muted">No membership plans found. <a asp-action="CreatePlan">Create one</a>.</p>
+            <p class="text-muted">No membership plans found. <a asp-action="ChoosePlanType">Create one</a>.</p>
         </div>
     }
 </div>

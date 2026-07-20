@@ -2,7 +2,7 @@
 
 namespace AssignmentTest1.Models.ViewModels
 {
-    public class RegisterViewModel
+    public class CreateUserViewModel
     {
         [Required(ErrorMessage = "Full name is required")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
@@ -30,7 +30,8 @@ namespace AssignmentTest1.Models.ViewModels
         [Display(Name = "Phone Number")]
         public string? Phone { get; set; }
 
-        [Display(Name = "Gender")]
-        public string? Gender { get; set; }
+        [Required(ErrorMessage = "Role is required")]
+        [Display(Name = "Role")]
+        public string Role { get; set; } = "Member";
     }
 }

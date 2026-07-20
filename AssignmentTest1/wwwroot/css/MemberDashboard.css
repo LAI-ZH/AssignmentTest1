@@ -111,45 +111,62 @@
 
 
 /* =========================
-   Table
+   Flexible Responsive Table
 ========================= */
 
 .db-table {
     width: 100%;
+    max-width: 100%;
     border-collapse: collapse;
+    table-layout: auto; /* Allows columns to resize naturally */
 }
-
 
     .db-table thead {
         background: #f4f7fb;
     }
 
+    .db-table th,
+    .db-table td {
+        padding: 12px 15px;
+        text-align: left;
+        font-size: clamp(13px, 1vw, 15px); /* Responsive font size */
+        word-break: break-word; /* Prevent long text overflow */
+        white-space: normal;
+    }
 
     .db-table th {
-        text-align: left;
-        padding: 15px;
-        font-size: 14px;
         color: #555;
+        font-weight: 600;
     }
-
 
     .db-table td {
-        padding: 15px;
         border-bottom: 1px solid #eee;
-        font-size: 14px;
     }
-
 
     .db-table tbody tr:hover {
         background: #f8fbff;
     }
-
 
 .td-strong {
     font-weight: 600;
     color: #222;
 }
 
+/* Responsive for tablets and mobiles */
+@media (max-width: 768px) {
+    .db-table {
+        display: block;
+        overflow-x: auto; /* Horizontal scroll if needed */
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+        .db-table th,
+        .db-table td {
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+}
 
 /* =========================
    Status Badge

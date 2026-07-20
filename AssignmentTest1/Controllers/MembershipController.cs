@@ -32,13 +32,6 @@ namespace AssignmentTest1.Controllers
             return View(plans);
         }
 
-        // GET: /Membership/CreatePlan
-        [Authorize(Roles = "Admin")]
-        public IActionResult CreatePlan()
-        {
-            return View();
-        }
-
         // POST: /Membership/CreatePlan
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -68,6 +61,75 @@ namespace AssignmentTest1.Controllers
 
             TempData["Success"] = $"Plan '{plan.PlanName}' created successfully!";
             return RedirectToAction(nameof(Plans));
+        }
+
+        // GET: /Membership/ChoosePlanType
+        [Authorize(Roles = "Admin")]
+        public IActionResult ChoosePlanType()
+        {
+            return View();
+        }
+
+        // GET: /Membership/CreatePlan?type=xxx
+        [Authorize(Roles = "Admin")]
+        public IActionResult CreatePlan(string type)
+        {
+            var model = new MembershipPlanViewModel();
+
+            // 根据类型设置默认值
+            switch (type)
+            {
+                case "monthly":
+                    model.PlanName = "Monthly Plan";
+                    model.DurationDays = 30;
+                    model.MaxBookings = 8;
+                    model.PTSessions = 0;
+                    model.Description = "Monthly subscription with class limit";
+                    break;
+
+                case "pass":
+                    model.PlanName = "Class Pass";
+                    model.DurationDays = 0;  // 0 = no expiry
+                    model.MaxBookings = 10;
+                    model.PTSessions = 0;
+                    model.Description = "Pay per class, no expiry";
+                    break;
+
+                case "unlimited":
+                    model.PlanName = "Unlimited Plan";
+                    model.DurationDays = 30;
+                    model.MaxBookings = 0;  // 0 = unlimited
+                    model.PTSessions = 0;
+                    model.Description = "Unlimited classes for 30 days";
+                    break;
+
+                case "longterm":
+                    model.PlanName = "Long-term Plan";
+                    model.DurationDays = 180;
+                    model.MaxBookings = 0;  // unlimited
+                    model.PTSessions = 0;
+                    model.Description = "6 months / 1 year with loyalty discount";
+                    model.IncludesInbody = true;
+                    model.IncludesGymAccess = true;
+                    break;
+
+                case "peak":
+                    model.PlanName = "Off-Peak Plan";
+                    model.DurationDays = 30;
+                    model.MaxBookings = 0;
+                    model.PTSessions = 0;
+                    model.Description = "Access during off-peak hours";
+                    break;
+
+                default: // custom
+                    model.PlanName = "Custom Plan";
+                    model.DurationDays = 30;
+                    model.MaxBookings = 8;
+                    break;
+            }
+
+            ViewBag.PlanType = type;
+            return View(model);
         }
 
         // GET: /Membership/EditPlan/5

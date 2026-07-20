@@ -1,0 +1,144 @@
+﻿@model AssignmentTest1.Models.ViewModels.EditUserViewModel
+
+@{
+    ViewData["Title"] = "Edit User";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-edit me-2"></i>Edit User</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" asp-for="UserId" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        @{
+                            var currentUserEmail = User.Identity?.Name;
+                            var isOwnAccount = currentUserEmail == Model.Email;
+                        }
+
+                        @if (isOwnAccount)
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>You are editing your own profile.
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="FullName" class="form-label fw-bold"></label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label fw-bold"></label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Phone" class="form-label fw-bold"></label>
+                                <input asp-for="Phone" class="form-control" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Role" class="form-label fw-bold"></label>
+                                <select asp-for="Role" class="form-select">
+                                    <option value="Admin">Admin</option>
+                                    <option value="Trainer">Trainer</option>
+                                    <option value="Member">Member</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-danger"></span>
+                            </div>
+
+                            <!-- ✅ 自己的账户不能 Lock -->
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle me-2"></i>
+                                You cannot lock your own account.
+                            </div>
+
+                            <!-- 显示 Last Login -->
+                            <div class="mb-3">
+                                <label asp-for="LastLoginAt" class="form-label fw-bold"></label>
+                                <input class="form-control" value="@(Model.LastLoginAt?.ToString("dd/MM/yyyy HH:mm") ?? "Never")" disabled />
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- ===== 别人的账户：只能改 Status ===== -->
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>You are editing another user's account.</strong>
+                                <br />
+                                <span class="text-muted small">You can only lock/unlock this account.</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Full Name</label>
+                                <input class="form-control" value="@Model.FullName" disabled />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                <input class="form-control" value="@Model.Email" disabled />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Role</label>
+                                <input class="form-control" value="@Model.Role" disabled />
+                            </div>
+
+                            <!-- 显示 Last Login -->
+                            <div class="mb-3">
+                                <label asp-for="LastLoginAt" class="form-label fw-bold"></label>
+                                <input class="form-control" value="@(Model.LastLoginAt?.ToString("dd/MM/yyyy HH:mm") ?? "Never")" disabled />
+                            </div>
+
+                            <input type="hidden" asp-for="FullName" />
+                            <input type="hidden" asp-for="Email" />
+                            <input type="hidden" asp-for="Phone" />
+                            <input type="hidden" asp-for="Role" />
+
+                            <div class="mb-3">
+                                <label asp-for="LockReason" class="form-label fw-bold"></label>
+                                <input asp-for="LockReason" class="form-control" placeholder="Enter reason for locking/unlocking" />
+                                <span asp-validation-for="LockReason" class="text-danger"></span>
+                            </div>
+                        }
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsLocked" class="form-check-input" />
+                            <label asp-for="IsLocked" class="form-check-label">
+                                <span class="text-danger">🔒 Lock Account</span>
+                                <small class="text-muted d-block">If locked, user cannot login until unlocked by admin</small>
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -56,9 +56,15 @@ namespace AssignmentTest1.Controllers
                 return View(model);
             }
 
-            if (user.IsLocked && user.LockUntil > DateTime.Now)
+            if (user.IsLocked)
             {
-                ModelState.AddModelError("", $"Account is locked. Try again after {user.LockUntil.Value:HH:mm}");
+                ModelState.AddModelError("", $"Account is locked. Please contact administrator.");
+                return View(model);
+            }
+
+            if (user.LockUntil.HasValue && user.LockUntil.Value > DateTime.Now)
+            {
+                ModelState.AddModelError("", $"Account is temporarily locked. Try again after {user.LockUntil.Value:HH:mm}");
                 return View(model);
             }
 
@@ -82,8 +88,8 @@ namespace AssignmentTest1.Controllers
                 return View(model);
             }
 
+            user.LastLoginAt = DateTime.Now;
             user.FailedLoginCount = 0;
-            user.IsLocked = false;
             user.LockUntil = null;
             await _context.SaveChangesAsync();
 
@@ -143,6 +149,7 @@ namespace AssignmentTest1.Controllers
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                 Role = "Member",
                 Phone = model.Phone,
+                Gender = model.Gender,
                 CreatedAt = DateTime.Now,
                 IsLocked = false,
                 FailedLoginCount = 0
