@@ -52,7 +52,7 @@ namespace AssignmentTest1.Migrations
 
                     b.HasIndex("ScheduleId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.ClassSchedule", b =>
@@ -87,7 +87,7 @@ namespace AssignmentTest1.Migrations
 
                     b.HasIndex("ClassId");
 
-                    b.ToTable("ClassSchedules");
+                    b.ToTable("ClassSchedules", (string)null);
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.FitnessClass", b =>
@@ -124,7 +124,7 @@ namespace AssignmentTest1.Migrations
 
                     b.HasIndex("TrainerId");
 
-                    b.ToTable("FitnessClasses");
+                    b.ToTable("FitnessClasses", (string)null);
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.MemberSubscription", b =>
@@ -169,7 +169,7 @@ namespace AssignmentTest1.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("MemberSubscriptions");
+                    b.ToTable("MemberSubscriptions", (string)null);
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.MembershipPlan", b =>
@@ -227,7 +227,7 @@ namespace AssignmentTest1.Migrations
 
                     b.HasKey("PlanId");
 
-                    b.ToTable("MembershipPlans");
+                    b.ToTable("MembershipPlans", (string)null);
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.TrainerPhoto", b =>
@@ -252,7 +252,7 @@ namespace AssignmentTest1.Migrations
 
                     b.HasIndex("TrainerId");
 
-                    b.ToTable("TrainerPhotos");
+                    b.ToTable("TrainerPhotos", (string)null);
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.User", b =>
