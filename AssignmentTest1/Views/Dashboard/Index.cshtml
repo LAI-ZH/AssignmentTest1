@@ -12,7 +12,6 @@
         <h2><i class="fas fa-chart-pie me-2"></i>Admin Dashboard</h2>
         <span class="badge bg-primary p-2">Welcome, @User.Identity.Name!</span>
     </div>
-    <hr />
 
     <!-- 统计卡片 - 第一行 -->
         <!-- 管理员 -->
@@ -229,8 +228,155 @@
             </div>
         </div>
     </div> *@
+
+    <!-- ===== CHARTS ===== -->
+    <div class="row mt-4">
+        <!-- 饼图：用户角色分布 -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>User Roles</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="userRoleChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 柱状图：每月预订趋势 -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Monthly Bookings Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyBookingChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 柱状图：最受欢迎课程 Top 5 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Top 5 Most Popular Classes</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="topClassChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // ============================================================
+        // Chart 1: User Roles (Pie Chart)
+        // ============================================================
+        var ctx1 = document.getElementById('userRoleChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(ViewBag.UserRoleLabels)),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(ViewBag.UserRoleData)),
+                    backgroundColor: @Html.Raw(Json.Serialize(ViewBag.UserRoleColors)),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 13 },
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        // ============================================================
+        // Chart 2: Monthly Bookings (Bar Chart)
+        // ============================================================
+        var ctx2 = document.getElementById('monthlyBookingChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(ViewBag.MonthLabels)),
+                datasets: [{
+                    label: 'Bookings',
+                    data: @Html.Raw(Json.Serialize(ViewBag.MonthData)),
+                    backgroundColor: ['#4F6EF7', '#4F6EF7', '#4F6EF7', '#4F6EF7', '#4F6EF7', '#4F6EF7'],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // ============================================================
+        // Chart 3: Top 5 Classes (Bar Chart)
+        // ============================================================
+        var ctx3 = document.getElementById('topClassChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(ViewBag.TopClassLabels)),
+                datasets: [{
+                    label: 'Bookings',
+                    data: @Html.Raw(Json.Serialize(ViewBag.TopClassData)),
+                    backgroundColor: @Html.Raw(Json.Serialize(ViewBag.TopClassColors)),
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 }

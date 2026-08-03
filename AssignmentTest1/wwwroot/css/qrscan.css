@@ -1,0 +1,77 @@
+﻿.scanner-container {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#my_camera {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 12px;
+    border: 2px solid #E5E7EB;
+    background: #000;
+    margin: 0 auto;
+}
+
+.scanner-overlay {
+    position: relative;
+    display: inline-block;
+}
+
+.scan-frame {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px;
+    height: 180px;
+    border: 3px solid #4F6EF7;
+    border-radius: 12px;
+    box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+.scan-line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 2px;
+    background: #4F6EF7;
+    animation: scanMove 1.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes scanMove {
+    0% { top: 30%; }
+    50% { top: 70%; }
+    100% { top: 30%; }
+}
+
+.result-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #F9FAFB;
+    border-radius: 8px;
+    border: 0.5px solid #E5E7EB;
+}
+
+.result-box .success {
+    color: #198754;
+    font-weight: 600;
+}
+
+.result-box .error {
+    color: #DC3545;
+    font-weight: 600;
+}
+
+.camera-controls {
+    margin-top: 1rem;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}

@@ -21,11 +21,13 @@ namespace AssignmentTest1.Controllers
         [Authorize(Roles = "Member")]
         public async Task<IActionResult> ClassCatalog()
         {
+            var today = DateOnly.FromDateTime(DateTime.Now);
             var classes = await _context.FitnessClasses
                 .Include(c => c.Trainer)
                 .Include(c => c.Schedules)
                     .ThenInclude(s => s.Bookings)
                 .Where(c => c.IsActive)
+                .Where(c => c.Schedules.Any(s => s.ScheduleDate >= today))
                 .OrderBy(c => c.ClassName)
                 .ToListAsync();
             return View(classes);
@@ -261,6 +263,14 @@ namespace AssignmentTest1.Controllers
                 return Forbid();
             }
 
+            // ✅ 检查：如果课程已过，不能取消
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            if (booking.Schedule != null && booking.Schedule.ScheduleDate < today)
+            {
+                TempData["Error"] = "You cannot cancel a class that has already passed.";
+                return RedirectToAction("MyBookings");
+            }
+
             // 只能取消 Confirmed 状态的预订
             if (booking.Status != "Confirmed")
             {
@@ -402,6 +412,34 @@ namespace AssignmentTest1.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Booking confirmed successfully!";
+            return RedirectToAction("AdminIndex");
+        }
+
+        // POST: /Booking/AdminMarkAttendance - Admin 标记出席
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminMarkAttendance(int bookingId)
+        {
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            if (booking.Status == "Confirmed" || booking.Status == "Attended")
+            {
+                booking.Status = "Attended";
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Attendance marked successfully!";
+            }
+            else
+            {
+                TempData["Error"] = "This booking cannot be marked as attended.";
+            }
+
             return RedirectToAction("AdminIndex");
         }
     }

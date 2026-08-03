@@ -73,7 +73,14 @@
         <h2><i class="fas fa-crown me-2"></i>Membership Plans</h2>
         @if (ViewBag.CurrentSubscription != null)
         {
-            <span class="badge badge-current">Current: @ViewBag.CurrentSubscription.Plan?.PlanName</span>
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle me-2"></i>
+                You already have an active subscription: <strong>@ViewBag.CurrentSubscription.Plan?.PlanName</strong>
+                <br />
+                <a asp-action="MySubscription" class="btn btn-sm btn-primary mt-2">
+                    <i class="fas fa-user-check me-1"></i>View My Subscription
+                </a>
+            </div>
         }
     </div>
 
@@ -173,7 +180,7 @@
                             }
                             else
                             {
-                                <a asp-action="Subscribe" asp-route-id="@item.PlanId" class="btn btn-primary btn-subscribe w-100">
+                                <a asp-action="MakePayment" asp-route-id="@item.PlanId" class="btn btn-primary btn-subscribe w-100">
                                     <i class="fas fa-shopping-cart me-2"></i>Subscribe Now
                                 </a>
                             }

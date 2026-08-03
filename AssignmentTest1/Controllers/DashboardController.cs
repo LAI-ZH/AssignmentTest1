@@ -39,15 +39,45 @@ namespace AssignmentTest1.Controllers
             ViewBag.TotalClasses = await _context.FitnessClasses.CountAsync();
             ViewBag.TotalBookings = await _context.Bookings.CountAsync();
 
+            //Chart 1
+            ViewBag.UserRoleLabels = new[] { "Admin", "Trainer", "Member" };
+            ViewBag.UserRoleData = new[] { totalAdmins, totalTrainers, totalMembers };
+            ViewBag.UserRoleColors = new[] { "#DC3545", "#0DCAF0", "#198754" };
+
+            //Chart 2
+            var classData = await _context.Bookings
+                .Include(b => b.Schedule)
+                    .ThenInclude(s => s.Class)
+                .Where(b => b.Schedule != null && b.Schedule.Class != null)
+                .Select(b => new { ClassName = b.Schedule.Class.ClassName })
+                .ToListAsync();
+
+            var topClasses = classData
+                .GroupBy(b => b.ClassName)
+                .Select(g => new
+                {
+                    ClassName = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(g => g.Count)
+                .Take(5)
+                .ToList();
+
+            ViewBag.TopClassLabels = topClasses.Select(g => g.ClassName).ToArray();
+            ViewBag.TopClassData = topClasses.Select(g => g.Count).ToArray();
+            ViewBag.TopClassColors = new[] { "#4F6EF7", "#22C55E", "#FFC107", "#DC3545", "#0DCAF0" };
+
+            // 最近预订
             var recentBookings = await _context.Bookings
                 .Include(b => b.Member)
                 .Include(b => b.Schedule)
-                .ThenInclude(s => s.Class)
+                    .ThenInclude(s => s.Class)
                 .OrderByDescending(b => b.BookedAt)
                 .Take(5)
                 .ToListAsync();
             ViewBag.RecentBookings = recentBookings;
 
+            // 即将开始的课程
             var upcomingClasses = await _context.ClassSchedules
                 .Include(cs => cs.Class)
                 .Where(cs => cs.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
@@ -124,7 +154,7 @@ namespace AssignmentTest1.Controllers
 
             var upcomingBookings = await _context.Bookings
                 .Where(b => b.MemberId == memberId)
-                .Where(b => b.Status == "Confiarmed")
+                .Where(b => b.Status == "Confirmed")
                 .Include(b => b.Schedule)
                 .ThenInclude(s => s.Class)
                 .Where(b => b.Schedule != null && b.Schedule.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))

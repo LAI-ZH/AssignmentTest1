@@ -1,0 +1,381 @@
+﻿@{
+    ViewData["Title"] = "QR Payment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/qrscan.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+@* <style>
+    .scanner-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        text-align: center;
+    }
+
+        .scanner-container h2 {
+            font-weight: 600;
+            color: #1A1A2E;
+        }
+
+        .scanner-container .text-muted {
+            color: #6B7280;
+        }
+
+    #qr-reader {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid #E5E7EB;
+    }
+
+        #qr-reader video {
+            border-radius: 12px;
+        }
+
+    .scan-status {
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 14px;
+        color: #6B7280;
+    }
+
+        .scan-status .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .success-message {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+
+        .success-message .icon {
+            font-size: 64px;
+            color: #198754;
+        }
+
+        .success-message h2 {
+            color: #198754;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .success-message .text-muted {
+            color: #6B7280;
+        }
+
+    .back-container {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .amount-badge {
+        display: inline-block;
+        background: #F0F3FF;
+        color: #4F6EF7;
+        padding: 8px 20px;
+        border-radius: 99px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+        background-color: #4F6EF7;
+        border-color: #4F6EF7;
+    }
+
+        .btn-primary:hover {
+            background-color: #3a56d4;
+            border-color: #3a56d4;
+        }
+
+    .btn-danger {
+        background-color: #DC3545;
+        border-color: #DC3545;
+    }
+
+        .btn-danger:hover {
+            background-color: #b02a37;
+            border-color: #b02a37;
+        }
+</style> *@
+
+<div class="container mt-4">
+    <div class="scanner-container">
+
+        <!-- Title -->
+        <h2><i class="fas fa-qrcode me-2"></i>Scan QR Code</h2>
+        <p class="text-muted">Show any QR code to your <strong>computer camera</strong></p>
+
+        <!-- Amount -->
+        <div class="text-center">
+            <span class="amount-badge">
+                <i class="fas fa-money-bill-wave me-2"></i>
+                RM @ViewBag.Amount?.ToString("F2")
+            </span>
+        </div>
+
+        <!-- QR Scanner -->
+        <div id="qr-reader"></div>
+
+        <!-- Status -->
+        <div id="scan-status" class="scan-status">
+            <i class="fas fa-spinner me-2"></i>
+            Waiting for QR code...
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="success-message" style="display:none;">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <h2>Payment Completed! ✅</h2>
+            <p class="text-muted">Your subscription has been activated.</p>
+            <div class="mt-3">
+                <a asp-action="MySubscription" class="btn btn-primary">
+                    <i class="fas fa-user-check me-2"></i>View My Subscription
+                </a>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
+            <button id="startScanBtn" class="btn btn-primary">
+                <i class="fas fa-play me-2"></i>Start Camera
+            </button>
+            <button id="stopScanBtn" class="btn btn-danger" style="display:none;">
+                <i class="fas fa-stop me-2"></i>Stop Camera
+            </button>
+        </div>
+
+        <!-- Back Button -->
+        <div class="back-container">
+            <a asp-action="MemberPlans" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Plans
+            </a>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ============================================================
+        // Get PlanId from ViewBag
+        // ============================================================
+
+        var planId = @ViewBag.PlanId;
+        console.log('PlanId from server:', planId);
+
+        // ============================================================
+        // Variables
+        // ============================================================
+
+        let html5QrCodeScanner = null;
+        let isScanning = false;
+        let isSuccess = false;
+
+        const scanStatus = document.getElementById('scan-status');
+        const successMessage = document.getElementById('success-message');
+        const readerElement = document.getElementById('qr-reader');
+        const startBtn = document.getElementById('startScanBtn');
+        const stopBtn = document.getElementById('stopScanBtn');
+
+        // ============================================================
+        // Start Scanner
+        // ============================================================
+
+        function startScanner() {
+            if (isScanning || isSuccess) return;
+
+            if (typeof Html5Qrcode === 'undefined') {
+                if (scanStatus) {
+                    scanStatus.innerHTML = '<span class="text-danger">QR Code library not loaded. Please refresh.</span>';
+                }
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                if (scanStatus) {
+                    scanStatus.innerHTML = '<span class="text-danger">Camera not supported on this browser.</span>';
+                }
+                return;
+            }
+
+            try {
+                html5QrCodeScanner = new Html5Qrcode('qr-reader');
+
+                html5QrCodeScanner.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    onScanSuccess,
+                    onScanError
+                ).then(function() {
+                    isScanning = true;
+                    if (startBtn) startBtn.style.display = 'none';
+                    if (stopBtn) stopBtn.style.display = 'inline-block';
+                    if (scanStatus) {
+                        scanStatus.innerHTML = '<i class="fas fa-camera me-2"></i>Camera is on. Show any QR code to scan.';
+                    }
+                }).catch(function(err) {
+                    console.error('Camera error:', err);
+                    if (scanStatus) {
+                        scanStatus.innerHTML = '<span class="text-danger">Camera error: ' + err.message + '</span>';
+                    }
+                });
+
+            } catch (err) {
+                console.error('Scanner error:', err);
+                if (scanStatus) {
+                    scanStatus.innerHTML = '<span class="text-danger">Error: ' + err.message + '</span>';
+                }
+            }
+        }
+
+        // ============================================================
+        // Stop Scanner
+        // ============================================================
+
+        function stopScanner() {
+            if (html5QrCodeScanner && isScanning) {
+                html5QrCodeScanner.stop().catch(function(err) {
+                    console.error('Stop error:', err);
+                });
+                isScanning = false;
+            }
+            if (startBtn) startBtn.style.display = 'inline-block';
+            if (stopBtn) stopBtn.style.display = 'none';
+        }
+
+        // ============================================================
+        // On Scan Success
+        // ============================================================
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isSuccess) return;
+            isSuccess = true;
+
+            if (html5QrCodeScanner && isScanning) {
+                html5QrCodeScanner.stop().catch(function(err) {
+                    console.error('Stop error:', err);
+                });
+                isScanning = false;
+            }
+
+            console.log('QR Code detected!');
+
+            if (scanStatus) {
+                scanStatus.innerHTML = '<span class="text-success">✅ QR Code detected! Processing...</span>';
+            }
+
+            // 调用服务器创建订阅
+            createSubscription();
+        }
+
+        // ============================================================
+        // On Scan Error
+        // ============================================================
+
+        function onScanError(error) {
+            // 忽略错误，继续扫描
+        }
+
+        // ============================================================
+        // Create Subscription
+        // ============================================================
+
+        function createSubscription() {
+            console.log('Creating subscription with PlanId:', planId);
+
+            if (!planId || planId === 0) {
+                alert('Error: Plan not selected. Please go back and try again.');
+                if (scanStatus) {
+                    scanStatus.innerHTML = '<span class="text-danger">Error: Plan not selected</span>';
+                }
+                isSuccess = false;
+                startScanner();
+                return;
+            }
+
+            var token = document.querySelector('input[name="__RequestVerificationToken"]');
+            var tokenValue = token ? token.value : '';
+
+            fetch('/Membership/CreateSubscriptionFromQR', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': tokenValue
+                },
+                body: JSON.stringify({
+                    planId: planId
+                })
+            })
+                .then(function(res) {
+                    console.log('Response status:', res.status);
+                    return res.json();
+                })
+                .then(function(data) {
+                    console.log('Server response:', data);
+                    if (data.success) {
+                        // ✅ 跳转到 QRPaymentSuccess
+                        window.location.href = '/Membership/QRPaymentSuccess?transactionId=' + data.transactionId;
+                    } else {
+                        alert('Payment failed: ' + (data.message || 'Unknown error'));
+                        isSuccess = false;
+                        startScanner();
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Error:', err);
+                    alert('Error processing payment. Please try again.');
+                    isSuccess = false;
+                    startScanner();
+                });
+        }
+
+        // ============================================================
+        // Event Listeners
+        // ============================================================
+
+        if (startBtn) {
+            startBtn.addEventListener('click', startScanner);
+        }
+
+        if (stopBtn) {
+            stopBtn.addEventListener('click', stopScanner);
+        }
+
+        // ============================================================
+        // Auto-start on page load
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(startScanner, 800);
+        });
+
+        // ============================================================
+        // Cleanup on page unload
+        // ============================================================
+
+        window.addEventListener('beforeunload', function() {
+            if (html5QrCodeScanner && isScanning) {
+                html5QrCodeScanner.stop().catch(function(err) {
+                    console.error('Stop error:', err);
+                });
+            }
+        });
+    </script>
+}
