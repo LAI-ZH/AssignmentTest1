@@ -44,7 +44,11 @@ namespace AssignmentTest1.Models.Entities
 
         public DateTime? LastLoginAt { get; set; }
 
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpiry { get; set; }
+
         // Navigation Properties
+        public ICollection<Payment>? Payments { get; set; }
         public ICollection<MemberSubscription>? Subscriptions { get; set; }
         public ICollection<FitnessClass>? Classes { get; set; }
         public ICollection<Booking>? Bookings { get; set; }

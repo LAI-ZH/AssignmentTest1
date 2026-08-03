@@ -8,17 +8,22 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Net.Mail;
+using AssignmentTest1.Helpers; 
 
 namespace AssignmentTest1.Controllers
 {
     public class AccountController : Controller
     {
         private readonly FitBookDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AccountController(FitBookDbContext context)
+        public AccountController(FitBookDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
+
 
         [HttpGet]
         public IActionResult Login()
@@ -197,39 +202,6 @@ namespace AssignmentTest1.Controllers
             return View();
         }
 
-        // GET: /Account/ForgotPassword
-        [HttpGet]
-        public IActionResult ForgotPassword()
-        {
-            return View();
-        }
-
-        // POST: /Account/ForgotPassword
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == model.Email.ToLower());
-
-            if (user != null)
-            {
-                // TODO: Send email with password reset link
-                TempData["Success"] = "Password reset link has been sent to your email.";
-            }
-            else
-            {
-                TempData["Success"] = "If your email exists in our system, you will receive a password reset link.";
-            }
-
-            return RedirectToAction("Login");
-        }
-
         // GET: /Account/ChangePassword
         [Authorize]
         [HttpGet]
@@ -268,6 +240,165 @@ namespace AssignmentTest1.Controllers
 
             TempData["Success"] = "Password changed successfully!";
             return RedirectToAction("Index", "Home");
+        }
+
+        // ============================================================
+        // FORGOT PASSWORD FUNCTIONS
+        // ============================================================
+
+        // GET: /Account/ForgotPassword
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        // POST: /Account/ForgotPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            Console.WriteLine($"=== ForgotPassword Called ===");
+            Console.WriteLine($"Email: {model.Email}");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == model.Email.ToLower());
+
+            Console.WriteLine($"User found: {user != null}");
+
+            if (user == null)
+            {
+                TempData["Success"] = "If your email exists, a password reset link has been sent.";
+                return RedirectToAction("Login");
+            }
+
+            user.ResetToken = Guid.NewGuid().ToString();
+            user.ResetTokenExpiry = DateTime.Now.AddHours(1);
+            await _context.SaveChangesAsync();
+
+            Console.WriteLine($"Reset Token: {user.ResetToken}");
+
+            var resetLink = $"{Request.Scheme}://{Request.Host}/Account/ResetPassword?token={user.ResetToken}&email={user.Email}";
+            Console.WriteLine($"Reset Link: {resetLink}");
+
+            try
+            {
+                // 发送邮件
+                var mail = new MailMessage();
+                mail.To.Add(new MailAddress(user.Email, user.FullName));
+                mail.Subject = "FitBook - Reset Your Password";
+                mail.IsBodyHtml = true;
+                mail.Body = $"<p>Click <a href='{resetLink}'>here</a> to reset your password.</p>";
+
+                var emailHelper = new EmailHelper(_configuration);
+                emailHelper.SendEmail(mail);
+                Console.WriteLine("Email sent successfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Email error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
+
+            TempData["Success"] = "A password reset link has been sent to your email.";
+            return RedirectToAction("Login");
+        }
+
+        // GET: /Account/ResetPassword
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string token, string email)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
+            {
+                TempData["Error"] = "Invalid reset link.";
+                return RedirectToAction("Login");
+            }
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower() && u.ResetToken == token);
+
+            if (user == null || user.ResetTokenExpiry < DateTime.Now)
+            {
+                TempData["Error"] = "Invalid or expired reset link.";
+                return RedirectToAction("Login");
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Email = email,
+                Token = token
+            };
+
+            return View(model);
+        }
+
+        // POST: /Account/ResetPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == model.Email.ToLower() && u.ResetToken == model.Token);
+
+            if (user == null || user.ResetTokenExpiry < DateTime.Now)
+            {
+                TempData["Error"] = "Invalid or expired reset link.";
+                return RedirectToAction("Login");
+            }
+
+            // 更新密码
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            user.ResetToken = null;
+            user.ResetTokenExpiry = null;
+            await _context.SaveChangesAsync();
+
+            // 发送确认邮件
+            var confirmMail = new MailMessage();
+            confirmMail.To.Add(new MailAddress(user.Email, user.FullName));
+            confirmMail.Subject = "FitBook - Password Reset Successful";
+            confirmMail.IsBodyHtml = true;
+
+            confirmMail.Body = $@"
+        <html>
+        <body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: #22C55E; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;'>
+                <h1 style='color: white; margin: 0;'>FitBook</h1>
+            </div>
+            <div style='border: 1px solid #E5E7EB; padding: 30px; border-radius: 0 0 8px 8px;'>
+                <h2 style='color: #1A1A2E;'>Password Reset Successful</h2>
+                <p style='color: #6B7280;'>Hello <strong>{user.FullName}</strong>,</p>
+                <p style='color: #6B7280;'>Your password has been successfully reset.</p>
+                <p style='color: #6B7280;'>You can now log in with your new password.</p>
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{Request.Scheme}://{Request.Host}/Account/Login' 
+                       style='background: #4F6EF7; color: white; padding: 12px 40px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;'>
+                        Login Now
+                    </a>
+                </div>
+                <hr style='border: 0.5px solid #F3F4F6; margin: 20px 0;' />
+                <p style='color: #9CA3AF; font-size: 12px; text-align: center;'>
+                    &copy; 2026 FitBook - Fitness Class Booking System
+                </p>
+            </div>
+        </body>
+        </html>
+    ";
+
+            var emailHelper = new EmailHelper(_configuration);
+            emailHelper.SendEmail(confirmMail);
+
+            TempData["Success"] = "Password reset successfully! Please login with your new password.";
+            return RedirectToAction("Login");
         }
     }
 }

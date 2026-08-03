@@ -20,7 +20,7 @@ namespace AssignmentTest1.Data
                 optionsBuilder.UseSqlServer("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\FitBook.mdf;Integrated Security=True;Connect Timeout=30;");
             }
         }
-
+        public DbSet<Payment> Payments { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<MembershipPlan> MembershipPlans { get; set; }
         public DbSet<MemberSubscription> MemberSubscriptions { get; set; }
@@ -97,6 +97,27 @@ namespace AssignmentTest1.Data
                 .HasOne(fc => fc.Trainer)
                 .WithMany(u => u.Classes)
                 .HasForeignKey(fc => fc.TrainerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ✅ Payment → User
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Payments)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ✅ Payment → Subscription (Optional)
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Subscription)
+                .WithOne(s => s.Payment)
+                .HasForeignKey<Payment>(p => p.SubscriptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ✅ MemberSubscription → Payment (One-to-One)
+            modelBuilder.Entity<MemberSubscription>()
+                .HasOne(s => s.Payment)
+                .WithOne(p => p.Subscription)
+                .HasForeignKey<MemberSubscription>(s => s.PaymentId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
 

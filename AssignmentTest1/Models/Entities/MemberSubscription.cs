@@ -32,5 +32,7 @@ namespace AssignmentTest1.Models.Entities
         public int PT_Used { get; set; } = 0;
         public DateTime? CancelledAt { get; set; }
         public bool AutoRenew { get; set; } = false;
+        public int? PaymentId { get; set; }
+        public Payment? Payment { get; set; }
     }
 }

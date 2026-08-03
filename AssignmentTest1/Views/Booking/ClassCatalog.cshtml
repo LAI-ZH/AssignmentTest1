@@ -98,7 +98,9 @@
         <div class="row">
             @foreach (var item in Model)
             {
-                var upcomingSessions = item.Schedules?.Where(s => s.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now)).ToList();
+                var today = DateOnly.FromDateTime(DateTime.Now);
+                var upcomingSessions = item.Schedules?.Where(s => s.ScheduleDate >= today).ToList();
+                var hasUpcoming = upcomingSessions?.Any() ?? false;
                 var upcomingCount = upcomingSessions?.Count ?? 0;
                 var totalBookings = item.Schedules?.Sum(s => s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) ?? 0;
 

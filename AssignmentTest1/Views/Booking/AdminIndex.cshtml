@@ -17,29 +17,15 @@
         gap: 0.5rem;
     }
 
-        .page-header h2 {
-            margin: 0;
-        }
+        .page-header h2 { margin: 0; }
 
-    .badge-confirmed {
-        background: #EAF3DE;
-        color: #3B6D11;
-    }
+    .badge-confirmed { background: #EAF3DE; color: #3B6D11; }
 
-    .badge-cancelled {
-        background: #FCEBEB;
-        color: #A32D2D;
-    }
+    .badge-cancelled { background: #FCEBEB; color: #A32D2D}
 
-    .badge-attended {
-        background: #E6F1FB;
-        color: #185FA5;
-    }
+    .badge-attended { background: #E6F1FB; color: #185FA5; }
 
-    .badge-waitlist {
-        background: #FFF3CD;
-        color: #856404;
-    }
+    .badge-waitlist { background: #FFF3CD; color: #856404; }
 </style>
 
 <div class="container mt-4">
@@ -69,6 +55,7 @@
                             <th>Time</th>
                             <th>Venue</th>
                             <th>Status</th>
+                            <th>Attendance</th>
                             <th>Booked On</th>
                             <th>Actions</th>
                         </tr>
@@ -76,6 +63,11 @@
                     <tbody>
                         @foreach (var item in Model.OrderByDescending(b => b.BookedAt))
                         {
+                            var scheduleDate = item.Schedule?.ScheduleDate;
+                            var today = DateOnly.FromDateTime(DateTime.Now);
+                            var isPassed = scheduleDate < today;
+                            var isToday = scheduleDate == today;
+
                             <tr>
                                 <td>@item.BookingId</td>
                                 <td>@item.Member?.FullName</td>
@@ -99,6 +91,43 @@
                                     else
                                     {
                                         <span class="badge badge-waitlist">@item.Status</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.Status == "Confirmed" && isToday)
+                                    {
+                                        <!-- ✅ 今天可以标记出席 -->
+                                        <form asp-action="AdminMarkAttendance" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="bookingId" value="@item.BookingId" />
+                                            <button type="submit" class="btn btn-success btn-sm" title="Mark as Attended">
+                                                <i class="fas fa-check"></i> Mark Present
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (item.Status == "Confirmed" && isPassed)
+                                    {
+                                        <!-- ❌ 已过期的课程，显示 Missed -->
+                                        <span class="badge badge-missed">❌ Missed</span>
+                                        <form asp-action="AdminMarkAttendance" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="bookingId" value="@item.BookingId" />
+                                            <button type="submit" class="btn btn-outline-success btn-sm" title="Mark as Attended (Late)">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (item.Status == "Attended")
+                                    {
+                                        <span class="badge badge-attended">✅ Present</span>
+                                    }
+                                    else if (item.Status == "Cancelled")
+                                    {
+                                        <span class="badge badge-cancelled">❌ Cancelled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
                                     }
                                 </td>
                                 <td>@item.BookedAt.ToString("dd/MM/yyyy HH:mm")</td>
@@ -136,6 +165,7 @@
         </div>
     </div>
 </div>
+
 
 @section Scripts {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />

@@ -138,7 +138,6 @@
                     }
 
                     <!-- Actions -->
-                    <hr />
                     <div class="d-grid gap-2">
                         <a asp-controller="Booking" asp-action="ClassCatalog" class="btn btn-success">
                             <i class="fas fa-search me-2"></i>Browse Classes
@@ -152,6 +151,44 @@
                         <a asp-action="MemberPlans" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Back to Plans
                         </a>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5><i class="fas fa-history me-2"></i>Recent Bookings</h5>
+                        @if (ViewBag.RecentBookings != null && ViewBag.RecentBookings.Count > 0)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Class</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Receipt</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var booking in ViewBag.RecentBookings)
+                                        {
+                                            <tr>
+                                                <td>@booking.Schedule?.Class?.ClassName</td>
+                                                <td>@booking.Schedule?.ScheduleDate.ToString("dd/MM/yyyy")</td>
+                                                <td>@booking.Status</td>
+                                                <td>
+                                                    <a asp-action="DownloadBookingReceipt" asp-route-id="@booking.BookingId" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-file-pdf"></i> PDF
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small">No bookings yet.</p>
+                        }
                     </div>
                 </div>
             </div>

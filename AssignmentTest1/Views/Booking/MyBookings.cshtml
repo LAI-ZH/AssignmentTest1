@@ -123,13 +123,24 @@
                                     <td>
                                         @if (item.Status == "Confirmed")
                                         {
-                                            <form asp-action="Cancel" method="post" onsubmit="return confirm('Cancel this booking?')">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="bookingId" value="@item.BookingId" />
-                                                <button type="submit" class="btn btn-danger btn-sm">
-                                                    <i class="fas fa-times"></i> Cancel
-                                                </button>
-                                            </form>
+                                            var today = DateOnly.FromDateTime(DateTime.Now);
+                                            var scheduleDate = item.Schedule?.ScheduleDate;
+                                            var isPast = scheduleDate < today;
+
+                                            if (isPast)
+                                            {
+                                                <span class="text-muted small">Cannot cancel (past)</span>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="Cancel" method="post" onsubmit="return confirm('Cancel this booking?')">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="bookingId" value="@item.BookingId" />
+                                                    <button type="submit" class="btn btn-danger btn-sm">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </form>
+                                            }
                                         }
                                         else
                                         {

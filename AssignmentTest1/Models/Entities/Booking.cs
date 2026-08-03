@@ -11,12 +11,12 @@ namespace AssignmentTest1.Models.Entities
         [Required]
         [ForeignKey("Member")]
         public int MemberId { get; set; }
-        public User? Member { get; set; }  // ← THIS MUST EXIST
+        public User? Member { get; set; }
 
         [Required]
         [ForeignKey("Schedule")]
         public int ScheduleId { get; set; }
-        public ClassSchedule? Schedule { get; set; }  // ← THIS MUST EXIST
+        public ClassSchedule? Schedule { get; set; }
 
         public DateTime BookedAt { get; set; } = DateTime.Now;
 
