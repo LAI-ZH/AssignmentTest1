@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<AssignmentTest1.Models.Entities.ClassSchedule>
 
 @{
-    ViewData["Title"] = "Manage Schedules";
+    ViewData["Title"] = "Class Schedule";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -13,135 +13,514 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
-    .page-header h2 { margin: 0; }
-    .badge-booking { background: #E6F1FB; color: #185FA5; }
-    .table-action { display: flex; gap: 5px; }
-    .table-action .btn { padding: 0.2rem 0.5rem; font-size: 13px; }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1A1A2E;
+            margin: 0;
+        }
+
+            .page-header h2 i {
+                color: #4F6EF7;
+            }
+
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        background: #ffffff;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        border: 0.5px solid #E5E7EB;
+    }
+
+        .filter-bar .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+            .filter-bar .search-box input {
+                width: 100%;
+                padding: 0.5rem 1rem 0.5rem 2.5rem;
+                border: 0.5px solid #E5E7EB;
+                border-radius: 8px;
+                font-size: 14px;
+                background: #F9FAFB;
+                transition: border-color 0.2s;
+            }
+
+                .filter-bar .search-box input:focus {
+                    outline: none;
+                    border-color: #4F6EF7;
+                    background: #ffffff;
+                }
+
+            .filter-bar .search-box i {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #9CA3AF;
+            }
+
+        .filter-bar .category-filter select {
+            padding: 0.5rem 1rem;
+            border: 0.5px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #F9FAFB;
+            color: #1A1A2E;
+            min-width: 140px;
+            cursor: pointer;
+        }
+
+    .schedule-wrapper {
+        overflow-x: auto;
+        background: #ffffff;
+        border-radius: 12px;
+        border: 0.5px solid #E5E7EB;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .schedule-grid {
+        min-width: 700px;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+        .schedule-grid th {
+            padding: 0.5rem 0.3rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 11px;
+            color: #6B7280;
+            border: 1px solid #E5E7EB;
+            background: #F9FAFB;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+
+            .schedule-grid th:first-child {
+                min-width: 80px;
+                text-align: left;
+                padding-left: 0.75rem;
+            }
+
+        .schedule-grid td {
+            padding: 0.2rem;
+            border: 1px solid #E5E7EB;
+            vertical-align: middle;
+            min-height: 40px;
+            width: 40px;
+        }
+
+            .schedule-grid td:first-child {
+                font-weight: 500;
+                color: #6B7280;
+                font-size: 12px;
+                padding-left: 0.75rem;
+                text-align: left;
+                vertical-align: top;
+                padding-top: 0.5rem;
+                width: 80px;
+                min-width: 80px;
+                background: #F9FAFB;
+            }
+
+            .schedule-grid td .date-label {
+                font-size: 10px;
+                color: #9CA3AF;
+                font-weight: 400;
+                display: block;
+            }
+
+    .class-block {
+        background: #F0F3FF;
+        border-radius: 6px;
+        padding: 0.25rem 0.4rem;
+        border-left: 3px solid #4F6EF7;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        min-height: 35px;
+        width: 100%;
+        margin: 0;
+    }
+
+        .class-block:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(79, 110, 247, 0.15);
+        }
+
+        .class-block .class-name {
+            font-weight: 600;
+            font-size: 12px;
+            color: #1A1A2E;
+            line-height: 1.2;
+        }
+
+        .class-block .class-detail {
+            font-size: 10px;
+            color: #6B7280;
+            line-height: 1.3;
+        }
+
+            .class-block .class-detail i {
+                width: 12px;
+                color: #4F6EF7;
+            }
+
+        .class-block .class-status {
+            font-size: 8px;
+            font-weight: 500;
+            padding: 1px 5px;
+            border-radius: 99px;
+            margin-top: 1px;
+            align-self: flex-start;
+        }
+
+            .class-block .class-status.available {
+                background: #EAF3DE;
+                color: #3B6D11;
+            }
+
+            .class-block .class-status.full {
+                background: #FCEBEB;
+                color: #A32D2D;
+            }
+
+        .class-block.yoga {
+            border-left-color: #8B5CF6;
+            background: #F5F0FF;
+        }
+
+        .class-block.hiit {
+            border-left-color: #EF4444;
+            background: #FEF2F2;
+        }
+
+        .class-block.dance {
+            border-left-color: #EC4899;
+            background: #FDF2F8;
+        }
+
+        .class-block.strength {
+            border-left-color: #F59E0B;
+            background: #FFFBEB;
+        }
+
+        .class-block.core {
+            border-left-color: #10B981;
+            background: #ECFDF5;
+        }
+
+        .class-block.boxing {
+            border-left-color: #3B82F6;
+            background: #EFF6FF;
+        }
+
+        .class-block.default {
+            border-left-color: #4F6EF7;
+            background: #F0F3FF;
+        }
+
+    .empty-cell {
+        padding: 0.3rem;
+        text-align: center;
+        color: #D1D5DB;
+        font-size: 11px;
+    }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background: #ffffff;
+        border-radius: 12px;
+        border: 0.5px solid #E5E7EB;
+    }
+
+        .legend .legend-label {
+            font-size: 11px;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        .legend .badge {
+            padding: 0.15rem 0.5rem;
+            border-radius: 99px;
+            font-weight: 500;
+            font-size: 10px;
+            color: white;
+        }
+
+            .legend .badge.yoga {
+                background: #8B5CF6;
+            }
+
+            .legend .badge.hiit {
+                background: #EF4444;
+            }
+
+            .legend .badge.dance {
+                background: #EC4899;
+            }
+
+            .legend .badge.strength {
+                background: #F59E0B;
+            }
+
+            .legend .badge.core {
+                background: #10B981;
+            }
+
+            .legend .badge.boxing {
+                background: #3B82F6;
+            }
+
+            .legend .badge.default {
+                background: #4F6EF7;
+            }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+            .filter-bar .search-box {
+                min-width: auto;
+            }
+
+            .filter-bar .category-filter select {
+                width: 100%;
+            }
+    }
 </style>
 
 <div class="container mt-4">
     <div class="page-header">
-        <h2><i class="fas fa-calendar-alt me-2"></i>Manage Schedules</h2>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add Schedule
-        </a>
+        <h2><i class="fas fa-calendar-alt me-2"></i>Weekly Class Schedule</h2>
+        <div class="header-actions">
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Schedule Class
+            </a>
+            <button class="btn btn-outline-secondary" onclick="location.reload();">
+                <i class="fas fa-sync me-2"></i>Refresh
+            </button>
+        </div>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="filter-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search schedule, trainer..." onkeyup="filterSchedule()" />
         </div>
-    }
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-            @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="category-filter">
+            <select id="categoryFilter" onchange="filterSchedule()">
+                <option value="">All Categories</option>
+                <option value="Yoga">Yoga</option>
+                <option value="HIIT">HIIT</option>
+                <option value="Dance">Dance</option>
+                <option value="Strength">Strength</option>
+                <option value="Core">Core</option>
+                <option value="Boxing">Boxing</option>
+            </select>
         </div>
-    }
+    </div>
 
-    @if (TempData["Warning"] != null)
-    {
-        <div class="alert alert-warning alert-dismissible fade show">
-            @TempData["Warning"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
+    <div class="schedule-wrapper">
+        <table class="schedule-grid">
+            <thead>
+                <tr>
+                    <th>Day / Time</th>
+                    @{
+                        var timeSlots = new[] {
+                new TimeOnly(7, 0, 0), new TimeOnly(8, 0, 0), new TimeOnly(9, 0, 0),
+                new TimeOnly(10, 0, 0), new TimeOnly(11, 0, 0), new TimeOnly(12, 0, 0),
+                new TimeOnly(13, 0, 0), new TimeOnly(14, 0, 0), new TimeOnly(15, 0, 0),
+                new TimeOnly(16, 0, 0), new TimeOnly(17, 0, 0), new TimeOnly(18, 0, 0),
+                new TimeOnly(19, 0, 0), new TimeOnly(20, 0, 0), new TimeOnly(21, 0, 0)
+            };
+                    }
+                    @foreach (var slot in timeSlots)
+                    {
+                        <th>@slot.Hour - @slot.AddHours(1).Hour</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var today = DateOnly.FromDateTime(DateTime.Now);
+                    var schedules = Model.ToList();
+                    var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+                    // 获取本周一的日期
+                    var daysOffset = (int)today.DayOfWeek - 1; // 周一是0
+                    if (daysOffset < 0) daysOffset = 6; // 如果今天是周日，偏移6天
+                    var monday = today.AddDays(-daysOffset);
+
+                    for (int day = 0; day < 7; day++)
+                    {
+                        var targetDate = monday.AddDays(day);
+
                         <tr>
-                            <th>ID</th>
-                            <th>Class</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Venue</th>
-                            <th>Bookings</th>
-                            <th>Actions</th>
+                            <td>
+                                @days[day]
+                                <span class="date-label">@targetDate.ToString("dd/MM/yyyy")</span>
+                                @if (targetDate == today)
+                                {
+                                    <span class="badge bg-primary" style="font-size:8px; padding:1px 4px; margin-top:2px; display:inline-block;">Today</span>
+                                }
+                            </td>
+
+                            @{
+                                var daySchedules = schedules
+                                    .Where(s => s.ScheduleDate == targetDate)
+                                    .OrderBy(s => s.StartTime)
+                                    .ToList();
+
+                                var usedColumns = new HashSet<int>();
+
+                                for (int col = 0; col < timeSlots.Length; col++)
+                                {
+                                    if (usedColumns.Contains(col))
+                                    {
+                                        continue;
+                                    }
+
+                                    var currentSlot = timeSlots[col];
+
+                                    var schedule = daySchedules
+                                        .FirstOrDefault(s => s.StartTime <= currentSlot && s.EndTime > currentSlot);
+
+                                    if (schedule != null)
+                                    {
+                                        var startCol = timeSlots.ToList().FindIndex(t => t >= schedule.StartTime);
+                                        if (startCol == -1) startCol = col;
+
+                                        var endCol = timeSlots.ToList().FindLastIndex(t => t < schedule.EndTime);
+                                        if (endCol == -1) endCol = startCol;
+
+                                        var colSpan = endCol - startCol + 1;
+                                        if (colSpan < 1) colSpan = 1;
+
+                                        for (int i = startCol; i <= endCol; i++)
+                                        {
+                                            usedColumns.Add(i);
+                                        }
+
+                                        var confirmedCount = schedule.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0;
+                                        var maxCapacity = schedule.Class?.MaxCapacity ?? 0;
+                                        var isFull = confirmedCount >= maxCapacity && maxCapacity > 0;
+
+                                        var categoryClass = "default";
+                                        if (schedule.Class?.Category != null)
+                                        {
+                                            categoryClass = schedule.Class.Category.ToLower() switch
+                                            {
+                                                "yoga" => "yoga",
+                                                "hiit" => "hiit",
+                                                "dance" => "dance",
+                                                "strength" => "strength",
+                                                "core" => "core",
+                                                "boxing" => "boxing",
+                                                _ => "default"
+                                            };
+                                        }
+
+                                        <td colspan="@colSpan" style="padding:0.15rem;">
+                                            <div class="class-block @categoryClass" onclick="location.href='@Url.Action("Details", "Schedule", new { id = schedule.ScheduleId })'">
+                                                <div class="class-name">@schedule.Class?.ClassName</div>
+                                                <div class="class-detail">
+                                                    <i class="fas fa-user-tie"></i> @(schedule.Class?.Trainer?.FullName ?? "TBD")
+                                                </div>
+                                                <div class="class-detail">
+                                                    <i class="fas fa-clock"></i> @schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")
+                                                </div>
+                                                <div class="class-detail">
+                                                    <i class="fas fa-door-open"></i> @schedule.Venue
+                                                </div>
+                                                <div class="class-status @(isFull ? "full" : "available")">
+                                                    @if (isFull)
+                                                    {
+                                                        <span>Full</span>
+                                                    }
+                                                    else
+                                                    {
+
+                                                        <span>@confirmedCount / @maxCapacity</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td><div class="empty-cell">—</div></td>
+                                    }
+                                }
+                            }
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.ScheduleId</td>
-                                <td><strong>@item.Class?.ClassName</strong></td>
-                                <td>@item.ScheduleDate.ToString("dd/MM/yyyy")</td>
-                                <td>@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</td>
-                                <td>@item.Venue</td>
-                                <td>
-                                    <span class="badge badge-booking">@(item.Bookings?.Count ?? 0)</span>
-                                </td>
-                                <td>
-                                    <div class="table-action">
-                                        <a asp-action="Details" asp-route-id="@item.ScheduleId" class="btn btn-sm btn-info" title="Details">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a asp-action="Edit" asp-route-id="@item.ScheduleId" class="btn btn-sm btn-warning" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-danger" title="Delete"
-                                                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                data-id="@item.ScheduleId" data-name="@item.Class?.ClassName - @item.ScheduleDate.ToString("dd/MM/yyyy")">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            @if (!Model.Any())
-            {
-                <p class="text-muted text-center my-4">No schedules found. <a asp-action="Create">Add one</a>.</p>
-            }
-        </div>
+                    }
+                }
+            </tbody>
+        </table>
     </div>
-</div>
 
-<!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete schedule: <strong id="deleteScheduleName"></strong>?</p>
-                <p class="text-muted small">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form asp-action="Delete" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" id="deleteScheduleId" />
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
+    <div class="legend">
+        <span class="legend-label">Categories:</span>
+        <span class="badge yoga">Yoga</span>
+        <span class="badge hiit">HIIT</span>
+        <span class="badge dance">Dance</span>
+        <span class="badge strength">Strength</span>
+        <span class="badge core">Core</span>
+        <span class="badge boxing">Boxing</span>
+        <span class="badge default">Default</span>
+        <span style="margin-left:auto; font-size:11px; color:#9CA3AF;">
+            <span class="class-status available" style="display:inline; padding:1px 6px;">Available</span>
+            <span class="class-status full" style="display:inline; padding:1px 6px;">Full</span>
+        </span>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Populate delete modal
-        var deleteModal = document.getElementById('deleteModal');
-        deleteModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget;
-            var id = button.getAttribute('data-id');
-            var name = button.getAttribute('data-name');
-            document.getElementById('deleteScheduleId').value = id;
-            document.getElementById('deleteScheduleName').textContent = name;
-        });
+        function filterSchedule() {
+            var search = document.getElementById('searchInput').value.toLowerCase();
+            var category = document.getElementById('categoryFilter').value.toLowerCase();
+
+            var blocks = document.querySelectorAll('.class-block');
+
+            blocks.forEach(function(block) {
+                var text = block.textContent.toLowerCase();
+                var classCategory = block.className.toLowerCase();
+
+                var matchesSearch = text.includes(search);
+                var matchesCategory = !category || classCategory.includes(category);
+
+                block.style.display = (matchesSearch && matchesCategory) ? 'flex' : 'none';
+            });
+        }
     </script>
 }
