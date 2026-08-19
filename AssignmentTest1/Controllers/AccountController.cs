@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Net.Mail;
-using AssignmentTest1.Helpers; 
+using AssignmentTest1.Helpers;
+using AssignmentTest1.Services;
 
 namespace AssignmentTest1.Controllers
 {
@@ -17,13 +18,35 @@ namespace AssignmentTest1.Controllers
     {
         private readonly FitBookDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly CaptchaService _captchaService;
 
-        public AccountController(FitBookDbContext context, IConfiguration configuration)
+        public AccountController(FitBookDbContext context, IConfiguration configuration, CaptchaService captchaService)
         {
             _context = context;
             _configuration = configuration;
+            _captchaService = captchaService;
         }
 
+
+        // ============================================================
+        // CAPTCHA FUNCTIONS
+        // ============================================================
+
+        // GET: /Account/GetCaptcha
+        [HttpGet]
+        public IActionResult GetCaptcha()
+        {
+            var code = _captchaService.GenerateCaptchaCode();
+            var imageBytes = _captchaService.GenerateCaptchaImage(code);
+
+            return File(imageBytes, "image/png");
+        }
+
+        // 验证验证码（在 Login/Register 中使用）
+        private bool VerifyCaptcha(string userInput)
+        {
+            return _captchaService.ValidateCaptcha(userInput);
+        }
 
         [HttpGet]
         public IActionResult Login()
@@ -92,6 +115,18 @@ namespace AssignmentTest1.Controllers
                 ModelState.AddModelError("", "Invalid email or password");
                 return View(model);
             }
+
+            // ✅ 检查验证码（如果登录失败超过3次）
+            if (model.FailedAttempts >= 3)
+            {
+                if (!VerifyCaptcha(model.CaptchaCode))
+                {
+                    ModelState.AddModelError("", "Invalid captcha code.");
+                    model.FailedAttempts = model.FailedAttempts + 1;
+                    return View(model);
+                }
+            }
+
 
             user.LastLoginAt = DateTime.Now;
             user.FailedLoginCount = 0;

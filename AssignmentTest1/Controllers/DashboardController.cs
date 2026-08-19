@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AssignmentTest1.Data;
+using AssignmentTest1.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using AssignmentTest1.Data;
 
 namespace AssignmentTest1.Controllers
 {
@@ -103,11 +104,22 @@ namespace AssignmentTest1.Controllers
 
             var trainerId = int.Parse(userIdClaim);
 
+            // 获取教练的日程（用于日历显示)
+            var mySchedules = await _context.ClassSchedules
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Trainer)
+                .Include(s => s.Bookings)
+                .Where(s => s.Class != null && s.Class.TrainerId == trainerId)
+                .OrderBy(s => s.ScheduleDate)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync() ?? new List<ClassSchedule>();
+            ViewBag.MySchedules = mySchedules;
+
             // 教练的课程
             var myClasses = await _context.FitnessClasses
                 .Where(c => c.TrainerId == trainerId)
                 .Include(c => c.Schedules)
-                .ToListAsync();
+                .ToListAsync() ?? new List<FitnessClass>();
             ViewBag.MyClasses = myClasses;
 
             // 即将开始的课程
@@ -117,8 +129,8 @@ namespace AssignmentTest1.Controllers
                 .Where(cs => cs.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
                 .OrderBy(cs => cs.ScheduleDate)
                 .ThenBy(cs => cs.StartTime)
-                .Take(5)
-                .ToListAsync();
+                .Take(10)
+                .ToListAsync() ?? new List<ClassSchedule>();
             ViewBag.UpcomingSchedules = upcomingSchedules;
 
             // 总学生数
@@ -144,24 +156,34 @@ namespace AssignmentTest1.Controllers
 
             var memberId = int.Parse(userIdClaim);
 
+            var allSchedules = await _context.ClassSchedules
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Trainer)
+                .Include(s => s.Bookings)
+                .OrderBy(s => s.ScheduleDate)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync() ?? new List<ClassSchedule>();
+            ViewBag.AllSchedules = allSchedules;
+
+
             var myBookings = await _context.Bookings
                 .Where(b => b.MemberId == memberId)
                 .Include(b => b.Schedule)
-                .ThenInclude(s => s.Class)
+                    .ThenInclude(s => s.Class)
                 .OrderByDescending(b => b.BookedAt)
-                .ToListAsync();
+                .ToListAsync() ?? new List<Booking>();
             ViewBag.MyBookings = myBookings;
 
             var upcomingBookings = await _context.Bookings
                 .Where(b => b.MemberId == memberId)
                 .Where(b => b.Status == "Confirmed")
                 .Include(b => b.Schedule)
-                .ThenInclude(s => s.Class)
+                    .ThenInclude(s => s.Class)
                 .Where(b => b.Schedule != null && b.Schedule.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
                 .OrderBy(b => b.Schedule.ScheduleDate)
                 .ThenBy(b => b.Schedule.StartTime)
                 .Take(5)
-                .ToListAsync();
+                .ToListAsync() ?? new List<Booking>();
             ViewBag.UpcomingBookings = upcomingBookings;
 
             ViewBag.TotalBookings = await _context.Bookings

@@ -5,16 +5,21 @@ using AssignmentTest1.Data;
 using AssignmentTest1.Models.Entities;
 using AssignmentTest1.Models.ViewModels;
 using System.Security.Claims;
+using AssignmentTest1.Services;
 
 namespace AssignmentTest1.Controllers
 {
     public class BookingController : Controller
     {
         private readonly FitBookDbContext _context;
+        private readonly EmailService _emailService;
+        private readonly IConfiguration _configuration;
 
-        public BookingController(FitBookDbContext context)
+        public BookingController(FitBookDbContext context, EmailService emailService, IConfiguration configuration  )
         {
             _context = context;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         // GET: /Booking/ClassCatalog - 浏览课程目录
@@ -105,6 +110,42 @@ namespace AssignmentTest1.Controllers
             }
             var memberId = int.Parse(userIdClaim);
 
+            // ✅ 检查是否有活跃的会员配套
+            var activeSubscription = await _context.MemberSubscriptions
+                .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
+
+            if (activeSubscription == null)
+            {
+                TempData["Error"] = "You need an active membership to book classes. Please subscribe to a plan first.";
+                return RedirectToAction("MemberPlans", "Membership");
+            }
+
+            // ✅ 检查会员是否过期
+            if (activeSubscription.EndDate < DateTime.Now)
+            {
+                activeSubscription.Status = "Expired";
+                await _context.SaveChangesAsync();
+                TempData["Error"] = "Your membership has expired. Please renew to book classes.";
+                return RedirectToAction("MemberPlans", "Membership");
+            }
+
+            // ✅ 检查剩余课程次数（如果配套有次数限制）
+            var plan = await _context.MembershipPlans.FindAsync(activeSubscription.PlanId);
+            if (plan != null && plan.MaxBookings > 0)
+            {
+                var usedBookings = await _context.Bookings
+                    .Where(b => b.MemberId == memberId && b.Status != "Cancelled")
+                    .Where(b => b.Schedule.ScheduleDate >= DateOnly.FromDateTime(activeSubscription.StartDate)
+                             && b.Schedule.ScheduleDate <= DateOnly.FromDateTime(activeSubscription.EndDate))
+                    .CountAsync();
+
+                if (usedBookings >= plan.MaxBookings)
+                {
+                    TempData["Error"] = $"You have used all your {plan.MaxBookings} bookings for this membership period.";
+                    return RedirectToAction("MySubscription", "Membership");
+                }
+            }   
+
             // 检查是否已经预订
             var existingBooking = await _context.Bookings
                 .FirstOrDefaultAsync(b => b.MemberId == memberId && b.ScheduleId == scheduleId && b.Status != "Cancelled");
@@ -146,6 +187,37 @@ namespace AssignmentTest1.Controllers
             _context.Bookings.Add(booking);
             schedule.CurrentBookings = confirmedCount + 1;
             await _context.SaveChangesAsync();
+
+            // ✅ 发送确认邮件
+            try
+            {
+                var emailService = new EmailService(_configuration);
+                var user = await _context.Users.FindAsync(memberId);
+                var scheduleInfo = await _context.ClassSchedules
+                    .Include(s => s.Class)
+                        .ThenInclude(c => c.Trainer)
+                    .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
+
+                if (user != null && scheduleInfo != null)
+                {
+                    var subject = "FitBook - Booking Confirmation";
+                    var body = emailService.GetBookingConfirmationEmail(
+                        user.FullName,
+                        scheduleInfo.Class?.ClassName ?? "Class",
+                        scheduleInfo.ScheduleDate.ToString("dd/MM/yyyy"),
+                        $"{scheduleInfo.StartTime:hh\\:mm} - {scheduleInfo.EndTime:hh\\:mm}",
+                        scheduleInfo.Venue,
+                        scheduleInfo.Class?.Trainer?.FullName ?? "TBD",
+                        booking.BookingId.ToString()
+                    );
+                    await emailService.SendEmailAsync(user.Email, subject, body);
+                    Console.WriteLine("Booking confirmation email sent.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send email: {ex.Message}");
+            }
 
             TempData["Success"] = $"Successfully booked '{schedule.Class.ClassName}'!";
             return RedirectToAction("MyBookings");
@@ -233,6 +305,36 @@ namespace AssignmentTest1.Controllers
                 .ToListAsync();
 
             return View(bookings);
+        }
+
+        // GET: /Booking/SearchClasses
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> SearchClasses(string search, string category)
+        {
+            var query = _context.FitnessClasses
+                .Include(c => c.Trainer)
+                .Include(c => c.Schedules)
+                    .ThenInclude(s => s.Bookings)
+                .Where(c => c.IsActive)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(c =>
+                    c.ClassName.Contains(search) ||
+                    c.Trainer.FullName.Contains(search));
+            }
+
+            if (!string.IsNullOrEmpty(category) && category != "All Categories")
+            {
+                query = query.Where(c => c.Category == category);
+            }
+
+            var classes = await query
+                .OrderBy(c => c.ClassName)
+                .ToListAsync();
+
+            return PartialView("_ClassList", classes);
         }
 
         // POST: /Booking/Cancel/5 - 取消预订

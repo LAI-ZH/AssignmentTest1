@@ -8,14 +8,19 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
+    .detail-card {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
     .detail-row {
         display: flex;
-        padding: 0.5rem 0;
+        padding: 0.75rem 0;
         border-bottom: 0.5px solid #F3F4F6;
     }
 
     .detail-label {
-        width: 150px;
+        width: 140px;
         font-weight: 500;
         color: #6B7280;
     }
@@ -25,102 +30,255 @@
         color: #1A1A2E;
     }
 
-    .badge-booking {
-        background: #E6F1FB;
-        color: #185FA5;
+        .detail-value strong {
+            color: #1A1A2E;
+        }
+
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 500;
     }
+
+        .badge-status.available {
+            background: #EAF3DE;
+            color: #3B6D11;
+        }
+
+        .badge-status.full {
+            background: #FCEBEB;
+            color: #A32D2D;
+        }
+
+        .badge-status.booked {
+            background: #E6F1FB;
+            color: #185FA5;
+        }
+
+    .btn-book {
+        padding: 10px 30px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #4F6EF7;
+        color: white;
+    }
+
+        .btn-book:hover {
+            background: #3a56d4;
+            transform: translateY(-1px);
+        }
+
+        .btn-book:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-book.booked {
+            background: #198754;
+        }
+
+            .btn-book.booked:hover {
+                background: #157347;
+            }
 </style>
 
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h4><i class="fas fa-calendar-alt me-2"></i>Schedule Details</h4>
+    <div class="detail-card">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4><i class="fas fa-calendar-alt me-2"></i>Schedule Details</h4>
+            </div>
+            <div class="card-body">
+                <!-- Schedule Info -->
+                <div class="detail-row">
+                    <span class="detail-label">Schedule ID</span>
+                    <span class="detail-value">#@Model.ScheduleId</span>
                 </div>
-                <div class="card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">Schedule ID</span>
-                        <span class="detail-value">@Model.ScheduleId</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Class</span>
-                        <span class="detail-value"><strong>@Model.Class?.ClassName</strong></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Trainer</span>
-                        <span class="detail-value">@Model.Class?.Trainer?.FullName</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Date</span>
-                        <span class="detail-value">@Model.ScheduleDate.ToString("dd/MM/yyyy")</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Time</span>
-                        <span class="detail-value">@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Venue</span>
-                        <span class="detail-value">@Model.Venue</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Bookings</span>
-                        <span class="detail-value">
-                            <span class="badge badge-booking">@(Model.Bookings?.Count ?? 0)</span>
-                            bookings
+                <div class="detail-row">
+                    <span class="detail-label">Class</span>
+                    <span class="detail-value"><strong>@Model.Class?.ClassName</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Category</span>
+                    <span class="detail-value">@Model.Class?.Category</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Trainer</span>
+                    <span class="detail-value">@Model.Class?.Trainer?.FullName</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date</span>
+                    <span class="detail-value">@Model.ScheduleDate.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time</span>
+                    <span class="detail-value">@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Venue</span>
+                    <span class="detail-value">@Model.Venue</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Capacity</span>
+                    <span class="detail-value">
+                        @{
+                            var confirmedCount = Model.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0;
+                            var maxCapacity = Model.Class?.MaxCapacity ?? 0;
+                            var isFull = confirmedCount >= maxCapacity && maxCapacity > 0;
+                        }
+                        <span class="badge-status @(isFull ? "full" : "available")">
+                            @confirmedCount / @maxCapacity
+                            @if (isFull)
+                            {
+                                <text>🔴 Full</text>
+                            }
+                            else
+                            {
+
+                                <text>🟢 Available</text>
+                            }
                         </span>
-                    </div>
+                    </span>
+                </div>
 
-                    @if (Model.Bookings != null && Model.Bookings.Any())
-                    {
-                        <hr />
-                        <h5><i class="fas fa-users me-2"></i>Bookings</h5>
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
+                <!-- Bookings List -->
+                @if (Model.Bookings != null && Model.Bookings.Any())
+                {
+                    <hr />
+                    <h5><i class="fas fa-users me-2"></i>Bookings (@Model.Bookings.Count)</h5>
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Member</th>
+                                    <th>Status</th>
+                                    <th>Booked On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var booking in Model.Bookings)
+                                {
                                     <tr>
-                                        <th>Member</th>
-                                        <th>Status</th>
-                                        <th>Booked On</th>
+                                        <td>@booking.Member?.FullName</td>
+                                        <td>
+                                            @if (booking.Status == "Confirmed")
+                                            {
+                                                <span class="badge bg-success">Confirmed</span>
+                                            }
+                                            else if (booking.Status == "Attended")
+                                            {
+                                                <span class="badge bg-info">Attended ✅</span>
+                                            }
+                                            else if (booking.Status == "Cancelled")
+                                            {
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@booking.Status</span>
+                                            }
+                                        </td>
+                                        <td>@booking.BookedAt.ToString("dd/MM/yyyy HH:mm")</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var booking in Model.Bookings)
-                                    {
-                                        <tr>
-                                            <td>@booking.Member?.FullName</td>
-                                            <td>
-                                                @if (booking.Status == "Confirmed")
-                                                {
-                                                    <span class="badge bg-success">Confirmed</span>
-                                                }
-                                                else if (booking.Status == "Cancelled")
-                                                {
-                                                    <span class="badge bg-danger">Cancelled</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">@booking.Status</span>
-                                                }
-                                            </td>
-                                            <td>@booking.BookedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <hr />
+                    <p class="text-muted small"><i class="fas fa-info-circle me-1"></i>No bookings yet for this session.</p>
+                }
 
-                    <div class="mt-4 d-flex gap-2">
+                <!-- Member Actions -->
+                @if (User.IsInRole("Member"))
+                {
+                    var isBooked = ViewBag.HasBooked ?? false;
+                    var today = DateOnly.FromDateTime(DateTime.Now);
+                    var isPast = Model.ScheduleDate < today;
+
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            @if (isBooked)
+                            {
+                                <span class="badge-status booked">✅ You have booked this class</span>
+                            }
+                            else if (isPast)
+                            {
+                                <span class="text-muted">This class has already passed.</span>
+                            }
+                            else if (isFull)
+                            {
+                                <span class="badge-status full">🔴 Full</span>
+                            }
+                            else
+                            {
+                                <span class="badge-status available">🟢 Available</span>
+                            }
+                        </div>
+
+                        @if (!isBooked && !isPast && !isFull)
+                        {
+                            <form asp-controller="Booking" asp-action="Book" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="scheduleId" value="@Model.ScheduleId" />
+                                <button type="submit" class="btn-book">📖 Book Now</button>
+                            </form>
+                        }
+                        else if (isBooked)
+                        {
+                            <span style="font-size:14px; color:#198754; font-weight:600;">✅ Already Booked</span>
+                        }
+                        else if (isPast)
+                        {
+                            <span style="font-size:14px; color:#6B7280;">📅 Class Passed</span>
+                        }
+                        else if (isFull)
+                        {
+                            <span style="font-size:14px; color:#DC3545;">🔴 Class Full</span>
+                        }
+                    </div>
+                }
+
+                <!-- Trainer Actions -->
+                @if (User.IsInRole("Trainer"))
+                {
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <span class="text-muted small"><i class="fas fa-info-circle me-1"></i>You are the trainer for this class</span>
+                    </div>
+                }
+
+                <!-- Back Button -->
+                <hr />
+                <div class="d-flex gap-2">
+                    <a asp-controller="Dashboard" asp-action="@(User.IsInRole("Admin") ? "Index" : User.IsInRole("Trainer") ? "TrainerDashboard" : "MemberDashboard")" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                    @if (User.IsInRole("Admin"))
+                    {
                         <a asp-action="Edit" asp-route-id="@Model.ScheduleId" class="btn btn-warning">
                             <i class="fas fa-edit me-2"></i>Edit
                         </a>
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        <a asp-action="Index" class="btn btn-outline-info">
+                            <i class="fas fa-list me-2"></i>All Schedules
                         </a>
-                    </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+}

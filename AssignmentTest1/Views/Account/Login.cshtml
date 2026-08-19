@@ -48,6 +48,21 @@
                             <label asp-for="RememberMe" class="form-check-label"></label>
                         </div>
 
+                        <!-- 验证码 -->
+                        <div class="mb-3" id="captchaSection" style="display:none;">
+                            <label class="form-label fw-bold">Enter Captcha</label>
+                            <div class="row g-2">
+                                <div class="col-8">
+                                    <input type="text" id="CaptchaInput" class="form-control" placeholder="Enter the code above" />
+                                </div>
+                                <div class="col-4">
+                                    <img id="captchaImage" src="@Url.Action("GetCaptcha", "Account")" alt="Captcha" style="height:38px; border-radius:6px; cursor:pointer;" onclick="refreshCaptcha()" />
+                                </div>
+                            </div>
+                            <span class="text-muted small">Click the image to refresh</span>
+                            <input type="hidden" name="CaptchaCode" id="CaptchaCode" />
+                        </div>
+
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login
@@ -85,6 +100,39 @@
         } else {
             passwordInput.type = 'password';
             eyeIcon.className = 'fas fa-eye';
+        }
+    });
+
+    // ============================================================
+    // Captcha Functions
+    // ============================================================
+
+    let loginAttempts = 0;
+
+    // 登录失败时显示验证码
+    function showCaptcha() {
+        document.getElementById('captchaSection').style.display = 'block';
+        refreshCaptcha();
+    }
+
+    function refreshCaptcha() {
+        document.getElementById('captchaImage').src = '@Url.Action("GetCaptcha", "Account")?' + new Date().getTime();
+    }
+
+    // 验证码输入同步
+    document.getElementById('CaptchaInput')?.addEventListener('input', function() {
+        document.getElementById('CaptchaCode').value = this.value;
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        var captchaSection = document.getElementById('captchaSection');
+        if (captchaSection && captchaSection.style.display !== 'none') {
+            var captchaInput = document.getElementById('CaptchaInput').value;
+            if (!captchaInput || captchaInput.length < 4) {
+                alert('Please enter the captcha code.');
+                e.preventDefault();
+                return;
+            }
         }
     });
 </script>

@@ -16,5 +16,11 @@ namespace AssignmentTest1.Models.ViewModels
 
         [Display(Name = "Remember Me")]
         public bool RememberMe { get; set; }
+
+        // ✅ 新增：验证码
+        public string? CaptchaCode { get; set; }
+
+        // ✅ 新增：登录失败次数
+        public int FailedAttempts { get; set; } = 0;
     }
 }

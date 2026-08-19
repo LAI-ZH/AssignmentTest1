@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AssignmentTest1.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class ScheduleController : Controller
     {
         private readonly FitBookDbContext _context;
@@ -19,6 +19,7 @@ namespace AssignmentTest1.Controllers
         }
 
         // GET: /Schedule/Index
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var schedules = await _context.ClassSchedules
@@ -31,6 +32,7 @@ namespace AssignmentTest1.Controllers
         }
 
         // GET: /Schedule/Create
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             var classes = await GetClasses();
@@ -39,6 +41,7 @@ namespace AssignmentTest1.Controllers
         }
 
         // POST: /Schedule/Create
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ScheduleViewModel model)
@@ -83,6 +86,7 @@ namespace AssignmentTest1.Controllers
         }
 
         // GET: /Schedule/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
         {
             var schedule = await _context.ClassSchedules
@@ -110,6 +114,7 @@ namespace AssignmentTest1.Controllers
         }
 
         // POST: /Schedule/Edit/5
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ScheduleViewModel model)
@@ -165,6 +170,7 @@ namespace AssignmentTest1.Controllers
         }
 
         // POST: /Schedule/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -193,6 +199,7 @@ namespace AssignmentTest1.Controllers
         }
 
         // GET: /Schedule/Details/5
+        [Authorize]
         public async Task<IActionResult> Details(int id)
         {
             var schedule = await _context.ClassSchedules
@@ -205,6 +212,19 @@ namespace AssignmentTest1.Controllers
             if (schedule == null)
             {
                 return NotFound();
+            }
+
+            // ✅ 检查用户角色，决定显示什么内容
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            // 如果是 Trainer，只能看自己的课程
+            if (role == "Trainer")
+            {
+                var trainerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (schedule.Class?.TrainerId != trainerId)
+                {
+                    return Forbid();
+                }
             }
 
             return View(schedule);

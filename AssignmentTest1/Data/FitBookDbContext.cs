@@ -30,6 +30,7 @@ namespace AssignmentTest1.Data
         public DbSet<Waitlist> Waitlists { get; set; }
         public DbSet<TrainerPhoto> TrainerPhotos { get; set; }
 
+        public DbSet<ClassScheduleTemplate> ClassScheduleTemplates { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
