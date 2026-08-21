@@ -6,162 +6,284 @@
     <title>@ViewData["Title"] - FitBook</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">FitBook</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
 
-                        <ul class="navbar-nav flex-grow-1">
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                            </li>
+    <div class="app-container">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <!-- 伸缩按钮（保留作为备选） -->
+            <button class="sidebar-toggle" id="sidebarToggle" title="Toggle Sidebar">
+                <i class="fas fa-chevron-left" id="toggleIcon"></i>
+            </button>
 
-                        @if (User.Identity?.IsAuthenticated == true)
+            <div class="sidebar-brand">
+                <i class="fas fa-dumbbell me-2"></i>
+                <span>FitBook</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="sidebar-menu">
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" asp-area="" asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Privacy" ? "active" : "")" asp-area="" asp-controller="Home" asp-action="Privacy">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Privacy</span>
+                        </a>
+                    </li>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="sidebar-divider"></li>
+
+                        <li class="sidebar-item">
+                            <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index">
+                                <i class="fas fa-user-circle"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Profile" asp-action="Index">
-                                    <i class="fas fa-user-circle me-1"></i>Profile
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="fas fa-chart-pie"></i>
+                                    <span>Dashboard</span>
                                 </a>
                             </li>
-
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Index">
-                                        <i class="fas fa-chart-pie me-1"></i>Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="User" asp-action="Index">
-                                        <i class="fas fa-users me-1"></i>Users
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Trainer" asp-action="Index">
-                                        <i class="fas fa-user-tie me-1"></i>Trainers
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Class" asp-action="Index">
-                                        <i class="fas fa-dumbbell me-1"></i>Classes
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Schedule" asp-action="Index">
-                                        <i class="fas fa-calendar-alt me-1"></i>Schedules
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Membership" asp-action="Plans">
-                                        <i class="fas fa-crown me-1"></i>Memberships
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Booking" asp-action="AdminIndex">
-                                        <i class="fas fa-calendar-check me-1"></i>Bookings
-                                    </a>
-                                </li>
-                            }
-                            else if (User.IsInRole("Trainer"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="TrainerDashboard">
-                                        <i class="fas fa-chart-pie me-1"></i>Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Trainer" asp-action="MyClasses">
-                                        <i class="fas fa-dumbbell me-1"></i>My Classes
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Trainer" asp-action="MySchedule">
-                                        <i class="fas fa-calendar-alt me-1"></i>My Schedule
-                                    </a>
-                                </li>
-                            }
-                            else if (User.IsInRole("Member"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="MemberDashboard">
-                                        <i class="fas fa-chart-pie me-1"></i>Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Booking" asp-action="ClassCatalog">
-                                        <i class="fas fa-search me-1"></i>Browse Classes
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Booking" asp-action="MyBookings">
-                                        <i class="fas fa-calendar-check me-1"></i>My Bookings
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Membership" asp-action="MemberPlans">
-                                        <i class="fas fa-crown me-1"></i>Membership
-                                    </a>
-                                </li>
-                            }
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "User" ? "active" : "")" asp-controller="User" asp-action="Index">
+                                    <i class="fas fa-users"></i>
+                                    <span>Users</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Trainer" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Trainer" asp-action="Index">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>Trainers</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Class" ? "active" : "")" asp-controller="Class" asp-action="Index">
+                                    <i class="fas fa-dumbbell"></i>
+                                    <span>Classes</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Schedule" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Schedule" asp-action="Index">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Schedules</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Membership" && ViewContext.RouteData.Values["Action"]?.ToString() == "Plans" ? "active" : "")" asp-controller="Membership" asp-action="Plans">
+                                    <i class="fas fa-crown"></i>
+                                    <span>Memberships</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Booking" && ViewContext.RouteData.Values["Action"]?.ToString() == "AdminIndex" ? "active" : "")" asp-controller="Booking" asp-action="AdminIndex">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>Bookings</span>
+                                </a>
+                            </li>
                         }
-                    </ul>
-
-                    <ul class="navbar-nav">
-                        @if (User.Identity?.IsAuthenticated == true)
+                        else if (User.IsInRole("Trainer"))
                         {
-                            <li class="nav-item">
-                                <span class="navbar-text text-success me-2">
-                                    <i class="fas fa-user-circle me-1"></i>Hello, @User.Identity.Name!
-                                </span>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" && ViewContext.RouteData.Values["Action"]?.ToString() == "TrainerDashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="TrainerDashboard">
+                                    <i class="fas fa-chart-pie"></i>
+                                    <span>Dashboard</span>
+                                </a>
                             </li>
-                            <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="fas fa-sign-out-alt me-1"></i>Logout
-                                    </button>
-                                </form>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Trainer" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyClasses" ? "active" : "")" asp-controller="Trainer" asp-action="MyClasses">
+                                    <i class="fas fa-dumbbell"></i>
+                                    <span>My Classes</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Trainer" && ViewContext.RouteData.Values["Action"]?.ToString() == "MySchedule" ? "active" : "")" asp-controller="Trainer" asp-action="MySchedule">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>My Schedule</span>
+                                </a>
                             </li>
                         }
-                        else
+                        else if (User.IsInRole("Member"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" && ViewContext.RouteData.Values["Action"]?.ToString() == "MemberDashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="MemberDashboard">
+                                    <i class="fas fa-chart-pie"></i>
+                                    <span>Dashboard</span>
+                                </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Booking" && ViewContext.RouteData.Values["Action"]?.ToString() == "ClassCatalog" ? "active" : "")" asp-controller="Booking" asp-action="ClassCatalog">
+                                    <i class="fas fa-search"></i>
+                                    <span>Browse Classes</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Booking" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyBookings" ? "active" : "")" asp-controller="Booking" asp-action="MyBookings">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>My Bookings</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Membership" && ViewContext.RouteData.Values["Action"]?.ToString() == "MemberPlans" ? "active" : "")" asp-controller="Membership" asp-action="MemberPlans">
+                                    <i class="fas fa-crown"></i>
+                                    <span>Membership</span>
+                                </a>
                             </li>
                         }
-                    </ul>
+
+                        <li class="sidebar-divider"></li>
+
+                        <li class="sidebar-item">
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="sidebar-logout-form">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="sidebar-link sidebar-logout-btn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="sidebar-divider"></li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link" asp-controller="Account" asp-action="Login">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Login</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item" style="margin-top: 4px;">
+                            <a class="sidebar-link sidebar-register" asp-controller="Account" asp-action="Register" style="background: #4F6EF7; color: #FFFFFF !important; border-radius: 10px; text-align: center; justify-content: center;">
+                                <i class="fas fa-user-plus" style="color: #FFFFFF !important;"></i>
+                                <span style="color: #FFFFFF !important; font-weight: 600;">Register</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+
+            <!-- User Info -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar">
+                        @User.Identity.Name?.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="sidebar-user-info">
+                        <span class="sidebar-user-name">@User.Identity.Name</span>
+                        <span class="sidebar-user-role">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
+                    </div>
                 </div>
+            }
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content">
+            <div class="main-content-inner">
+                @RenderBody()
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - FitBook - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+            // ============================================================
+            // Sidebar Hover Auto-Expand
+            // ============================================================
+
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            // 检查 localStorage 中保存的状态
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') !== 'false';
+
+            if (isCollapsed) {
+                sidebar.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            }
+
+            // ===== 鼠标悬停展开 =====
+            let expandTimeout = null;
+            let collapseTimeout = null;
+
+            // 鼠标进入侧边栏 → 展开
+            sidebar.addEventListener('mouseenter', function() {
+                clearTimeout(collapseTimeout);
+                expandTimeout = setTimeout(() => {
+                    if (sidebar.classList.contains('collapsed')) {
+                        sidebar.classList.remove('collapsed');
+                        toggleIcon.classList.remove('fa-chevron-right');
+                        toggleIcon.classList.add('fa-chevron-left');
+                    }
+                }, 150);
+            });
+
+            // 鼠标离开侧边栏 → 收缩（如果之前是收缩状态）
+            sidebar.addEventListener('mouseleave', function() {
+                clearTimeout(expandTimeout);
+                const wasCollapsed = localStorage.getItem('sidebarCollapsed') !== 'false';
+                if (wasCollapsed) {
+                    collapseTimeout = setTimeout(() => {
+                        sidebar.classList.add('collapsed');
+                        toggleIcon.classList.remove('fa-chevron-left');
+                        toggleIcon.classList.add('fa-chevron-right');
+                    }, 300);
+                }
+            });
+
+            // ===== 点击按钮切换锁定状态 =====
+            toggleBtn.addEventListener('click', function() {
+                const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+
+                if (isCurrentlyCollapsed) {
+                    // 展开并锁定
+                    sidebar.classList.remove('collapsed');
+                    toggleIcon.classList.remove('fa-chevron-right');
+                    toggleIcon.classList.add('fa-chevron-left');
+                    localStorage.setItem('sidebarCollapsed', 'false');
+                } else {
+                    // 收缩并锁定
+                    sidebar.classList.add('collapsed');
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                    localStorage.setItem('sidebarCollapsed', 'true');
+                }
+            });
+
+            // ===== 移动端：点击外部自动收缩 =====
+            document.addEventListener('click', function(e) {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const isClickInside = sidebar.contains(e.target);
+                    const isToggleClick = toggleBtn.contains(e.target);
+                    if (!isClickInside && !isToggleClick && !sidebar.classList.contains('collapsed')) {
+                        sidebar.classList.add('collapsed');
+                        localStorage.setItem('sidebarCollapsed', 'true');
+                        toggleIcon.classList.remove('fa-chevron-left');
+                        toggleIcon.classList.add('fa-chevron-right');
+                    }
+                }
+            });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

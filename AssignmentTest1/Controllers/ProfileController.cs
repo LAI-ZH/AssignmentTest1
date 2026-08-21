@@ -6,6 +6,7 @@ using AssignmentTest1.Models.Entities;
 using AssignmentTest1.Models.ViewModels;
 using BCrypt.Net;
 using System.Security.Claims;
+using AssignmentTest1.Services;
 
 namespace AssignmentTest1.Controllers
 {
@@ -13,10 +14,12 @@ namespace AssignmentTest1.Controllers
     public class ProfileController : Controller
     {
         private readonly FitBookDbContext _context;
+        private readonly FileUploadService _fileUploadService;
 
-        public ProfileController(FitBookDbContext context)
+        public ProfileController(FitBookDbContext context, FileUploadService fileUploadService)
         {
             _context = context;
+            _fileUploadService = fileUploadService;
         }
 
         // GET: /Profile/Index
@@ -42,6 +45,7 @@ namespace AssignmentTest1.Controllers
                 FullName = user.FullName,
                 Email = user.Email,
                 Phone = user.Phone,
+                ProfilePhoto = user.ProfilePhoto,
                 Gender = user.Gender,
                 CreatedAt = user.CreatedAt,
                 LastLoginAt = user.LastLoginAt
@@ -75,7 +79,9 @@ namespace AssignmentTest1.Controllers
                 Phone = user.Phone,
                 Gender = user.Gender,
                 CreatedAt = user.CreatedAt,
-                LastLoginAt = user.LastLoginAt
+                LastLoginAt = user.LastLoginAt,
+                ProfilePhoto = user.ProfilePhoto,          // ✅ string
+                CurrentProfilePhoto = user.ProfilePhoto    // ✅ string
             };
 
             return View(model);
@@ -119,6 +125,23 @@ namespace AssignmentTest1.Controllers
             user.Email = model.Email;
             user.Phone = model.Phone;
             user.Gender = model.Gender;
+
+            // ✅ 处理头像上传
+            if (model.ProfilePhoto != null)
+            {
+                // 删除旧头像
+                if (!string.IsNullOrEmpty(user.ProfilePhoto))
+                {
+                    _fileUploadService.DeleteFile(user.ProfilePhoto);
+                }
+
+                // 上传新头像
+                var newPhotoPath = await _fileUploadService.UploadFileAsync(model.ProfilePhotoFile);
+                if (newPhotoPath != null)
+                {
+                    user.ProfilePhoto = newPhotoPath;
+                }
+            }
 
             _context.Update(user);
             await _context.SaveChangesAsync();

@@ -33,6 +33,8 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<CaptchaService>();
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddScoped<FileUploadService>();
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {

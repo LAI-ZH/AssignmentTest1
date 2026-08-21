@@ -12,6 +12,7 @@
         max-width: 600px;
         margin: 0 auto;
     }
+
     .avatar-circle {
         width: 100px;
         height: 100px;
@@ -24,20 +25,24 @@
         color: white;
         margin: 0 auto 1rem;
     }
+
     .detail-row {
         display: flex;
         padding: 0.5rem 0;
         border-bottom: 0.5px solid #F3F4F6;
     }
+
     .detail-label {
         width: 120px;
         font-weight: 500;
         color: #6B7280;
     }
+
     .detail-value {
         flex: 1;
         color: #1A1A2E;
     }
+
     .badge-role {
         display: inline-block;
         padding: 2px 10px;
@@ -45,9 +50,30 @@
         font-size: 12px;
         font-weight: 500;
     }
-    .badge-role.admin { background: #FCEBEB; color: #A32D2D; }
-    .badge-role.trainer { background: #E6F1FB; color: #185FA5; }
-    .badge-role.member { background: #EAF3DE; color: #3B6D11; }
+
+        .badge-role.admin {
+            background: #FCEBEB;
+            color: #A32D2D;
+        }
+
+        .badge-role.trainer {
+            background: #E6F1FB;
+            color: #185FA5;
+        }
+
+        .badge-role.member {
+            background: #EAF3DE;
+            color: #3B6D11;
+        }
+
+    .profile-photo {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #4F6EF7;
+        margin: 0 auto 1rem;
+    }
 </style>
 
 <div class="container mt-4">
@@ -67,9 +93,16 @@
 
                 <!-- Avatar -->
                 <div class="text-center">
-                    <div class="avatar-circle">
-                        @Model.FullName.Substring(0, 1).ToUpper()
-                    </div>
+                    @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
+                    {
+                        <img src="@Model.ProfilePhoto" alt="Profile Photo" class="profile-photo" />
+                    }
+                    else
+                    {
+                        <div class="avatar-circle">
+                            @Model.FullName.Substring(0, 1).ToUpper()
+                        </div>
+                    }
                     <h5 class="mt-2">@Model.FullName</h5>
                     <span class="badge-role @Model.Gender?.ToLower()">
                         @if (Model.Gender == "Male")

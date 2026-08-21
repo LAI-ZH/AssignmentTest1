@@ -28,5 +28,15 @@ namespace AssignmentTest1.Models.ViewModels
 
         [Display(Name = "Last Login")]
         public DateTime? LastLoginAt { get; set; }
+
+        // ✅ 存储头像路径 (string)
+        public string? ProfilePhoto { get; set; }
+
+        // ✅ 上传头像文件 (IFormFile)
+        [Display(Name = "Profile Photo")]
+        public IFormFile? ProfilePhotoFile { get; set; }
+
+        // ✅ 当前头像路径 (用于显示)
+        public string? CurrentProfilePhoto { get; set; }
     }
 }

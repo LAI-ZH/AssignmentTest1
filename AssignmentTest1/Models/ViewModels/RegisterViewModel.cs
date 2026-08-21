@@ -30,6 +30,9 @@ namespace AssignmentTest1.Models.ViewModels
         [Display(Name = "Phone Number")]
         public string? Phone { get; set; }
 
+        [Display(Name = "Profile Photo")]
+        public IFormFile? ProfilePhoto { get; set; }
+
         [Display(Name = "Gender")]
         public string? Gender { get; set; }
     }

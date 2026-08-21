@@ -28,7 +28,7 @@ namespace AssignmentTest1.Controllers
         public async Task<IActionResult> Plans()
         {
             var plans = await _context.MembershipPlans
-                .Include(p => p.Subscriptions)
+                .Include(p => p.Subscriptions.Where(s => s.Status == "Active"))
                 .OrderBy(p => p.DisplayOrder)
                 .ToListAsync();
             return View(plans);
@@ -238,6 +238,23 @@ namespace AssignmentTest1.Controllers
 
             TempData["Success"] = $"Plan '{planName}' deleted successfully!";
             return RedirectToAction(nameof(Plans));
+        }
+
+        // GET: /Membership/PlanSubscribers/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PlanSubscribers(int id)
+        {
+            var plan = await _context.MembershipPlans
+                .Include(p => p.Subscriptions)
+                    .ThenInclude(s => s.User)
+                .FirstOrDefaultAsync(p => p.PlanId == id);
+
+            if (plan == null)
+            {
+                return NotFound();
+            }
+
+            return View(plan);
         }
 
         // ============================================================

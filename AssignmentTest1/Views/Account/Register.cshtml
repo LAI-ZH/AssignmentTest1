@@ -13,7 +13,7 @@
                     <h4><i class="fas fa-user-plus me-2"></i>Register for FitBook</h4>
                 </div>
 
-                    <form asp-action="Register" method="post">
+                    <form asp-action="Register" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
@@ -46,6 +46,14 @@
                             <input asp-for="Phone" class="form-control" placeholder="Enter your phone number (optional)" />
                             <span asp-validation-for="Phone" class="text-danger"></span>
                         </div>
+
+                    <!-- Profile Photo -->
+                    <div class="mb-3">
+                        <label asp-for="ProfilePhoto" class="form-label fw-bold"></label>
+                        <input asp-for="ProfilePhoto" class="form-control" type="file" accept="image/*" />
+                        <span class="text-muted small">Upload a profile photo (JPG, PNG, GIF)</span>
+                        <span asp-validation-for="ProfilePhoto" class="text-danger"></span>
+                    </div>
 
                     <div class="mb-3">
                         <label asp-for="Password" class="form-label fw-bold"></label>

@@ -19,12 +19,14 @@ namespace AssignmentTest1.Controllers
         private readonly FitBookDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly CaptchaService _captchaService;
+        private readonly FileUploadService _fileUploadService;
 
-        public AccountController(FitBookDbContext context, IConfiguration configuration, CaptchaService captchaService)
+        public AccountController(FitBookDbContext context, IConfiguration configuration, CaptchaService captchaService, FileUploadService fileUploadService)
         {
             _context = context;
             _configuration = configuration;
             _captchaService = captchaService;
+            _fileUploadService = fileUploadService;
         }
 
 
@@ -116,8 +118,8 @@ namespace AssignmentTest1.Controllers
                 return View(model);
             }
 
-            // ✅ 检查验证码（如果登录失败超过3次）
-            if (model.FailedAttempts >= 3)
+            // ✅ 检查验证码（如果登录失败超过2次）
+            if (model.FailedAttempts >= 2)
             {
                 if (!VerifyCaptcha(model.CaptchaCode))
                 {
@@ -182,6 +184,20 @@ namespace AssignmentTest1.Controllers
                 ModelState.AddModelError("Email", "Email already registered");
                 return View(model);
             }
+
+            // ✅ 上传头像
+            string? profilePhotoPath = null;
+            if (model.ProfilePhoto != null)
+            {
+                Console.WriteLine("✅ Uploading profile photo...");
+                profilePhotoPath = await _fileUploadService.UploadFileAsync(model.ProfilePhoto);
+                Console.WriteLine($"✅ Upload result: {profilePhotoPath ?? "NULL"}");
+            }
+            else
+            {
+                Console.WriteLine("❌ ProfilePhoto is NULL, skipping upload");
+            }
+
             var user = new User
             {
                 FullName = model.FullName,
@@ -190,6 +206,7 @@ namespace AssignmentTest1.Controllers
                 Role = "Member",
                 Phone = model.Phone,
                 Gender = model.Gender,
+                ProfilePhoto = profilePhotoPath,
                 CreatedAt = DateTime.Now,
                 IsLocked = false,
                 FailedLoginCount = 0

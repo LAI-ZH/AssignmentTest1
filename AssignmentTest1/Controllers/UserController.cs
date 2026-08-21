@@ -19,42 +19,88 @@ namespace AssignmentTest1.Controllers
             _context = context;
         }
 
-        // GET: /User/Index - 用户列表
-        public async Task<IActionResult> Index(string search = null, string role = null)
+        // GET: /User/Index
+        public async Task<IActionResult> Index(
+            string? search = null,
+            string? role = null,
+            string? sortBy = "FullName",
+            string? sortOrder = "asc",
+            int page = 1,
+            int pageSize = 10)
         {
-            var query = _context.Users.AsQueryable();
+            var query = _context.Users
+                .Include(u => u.Subscriptions)
+                    .ThenInclude(s => s.Plan)
+                .AsQueryable();
 
+            // ===== 搜索 (Searching) =====
             if (!string.IsNullOrEmpty(search))
             {
+                search = search.Trim();
                 query = query.Where(u =>
                     u.FullName.Contains(search) ||
-                    u.Email.Contains(search));
+                    u.Email.Contains(search) ||
+                    u.Phone.Contains(search));
             }
 
+            // ===== 筛选 (Filtering) =====
             if (!string.IsNullOrEmpty(role))
             {
                 query = query.Where(u => u.Role == role);
             }
 
+            // ===== 排序 (Sorting) =====
+            sortBy = string.IsNullOrEmpty(sortBy) ? "FullName" : sortBy;
+            sortOrder = string.IsNullOrEmpty(sortOrder) ? "asc" : sortOrder;
+
+            query = sortBy.ToLower() switch
+            {
+                "id" => sortOrder == "asc" ? query.OrderBy(u => u.UserId) : query.OrderByDescending(u => u.UserId),
+                "fullname" => sortOrder == "asc" ? query.OrderBy(u => u.FullName) : query.OrderByDescending(u => u.FullName),
+                "email" => sortOrder == "asc" ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
+                "role" => sortOrder == "asc" ? query.OrderBy(u => u.Role) : query.OrderByDescending(u => u.Role),
+                "lastlogin" => sortOrder == "asc" ? query.OrderBy(u => u.LastLoginAt) : query.OrderByDescending(u => u.LastLoginAt),
+                _ => sortOrder == "asc" ? query.OrderBy(u => u.FullName) : query.OrderByDescending(u => u.FullName)
+            };
+
+            // ===== 分页 (Paging) =====
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
             var users = await query
-                .OrderBy(u => u.Role)
-                .ThenBy(u => u.FullName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            ViewBag.SearchTerm = search;
-            ViewBag.SelectedRole = role;
-            ViewBag.Roles = new List<string> { "Admin", "Trainer", "Member" };
+            var model = new UserIndexViewModel
+            {
+                Users = users,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = search,
+                SelectedRole = role,
+                SortBy = sortBy,
+                SortOrder = sortOrder
+            };
 
-            return View(users);
+            ViewBag.Roles = new List<string> { "Admin", "Trainer", "Member" };
+            return View(model);
         }
 
-        // GET: /User/Details/5 - 用户详情
+        // GET: /User/Details/5
         public async Task<IActionResult> Details(int id)
         {
             var user = await _context.Users
                 .Include(u => u.Bookings)
                     .ThenInclude(b => b.Schedule)
                     .ThenInclude(s => s.Class)
+                .Include(u => u.Subscriptions)
+                    .ThenInclude(s => s.Plan)
                 .FirstOrDefaultAsync(u => u.UserId == id);
 
             if (user == null)
@@ -65,14 +111,14 @@ namespace AssignmentTest1.Controllers
             return View(user);
         }
 
-        // GET: /User/Create - 创建用户页面
+        // GET: /User/Create
         public IActionResult Create()
         {
-            ViewBag.Roles = new List<string> { "Admin", "Trainer" };  // ✅ 只显示 Admin + Trainer
+            ViewBag.Roles = new List<string> { "Admin", "Trainer" };
             return View();
         }
 
-        // POST: /User/Create - 创建用户
+        // POST: /User/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateUserViewModel model)
@@ -112,7 +158,7 @@ namespace AssignmentTest1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: /User/Edit/5 - 编辑用户页面
+        // GET: /User/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -141,7 +187,7 @@ namespace AssignmentTest1.Controllers
             return View(model);
         }
 
-        // POST: /User/Edit/5 - 更新用户
+        // POST: /User/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EditUserViewModel model)
@@ -187,16 +233,6 @@ namespace AssignmentTest1.Controllers
             {
                 user.IsLocked = model.IsLocked;
                 user.LockReason = model.LockReason;
-
-                if (model.IsLocked)
-                {
-                    user.LockUntil = DateTime.Now.AddYears(10);
-                }
-                else
-                {
-                    user.LockUntil = null;
-                    user.LockReason = null;
-                }
             }
 
             _context.Update(user);
@@ -206,7 +242,7 @@ namespace AssignmentTest1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /User/Delete/5 - 删除用户
+        // POST: /User/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
