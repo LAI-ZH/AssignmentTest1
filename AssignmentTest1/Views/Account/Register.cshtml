@@ -94,10 +94,10 @@
                     </span>
                     <div class="custom-file-input">
                         <span class="file-name" id="file-name-display">No file chosen</span>
-                        <button type="button" class="file-picker-btn" onclick="document.getElementById('profilePhotoInput').click();">
+                        <button type="button" class="file-picker-btn" id="browseBtn">
                             <i class="fas fa-folder-open" style="margin-right:4px;"></i> Browse
                         </button>
-                        <input type="file" id="profilePhotoInput" asp-for="ProfilePhoto" accept="image/*" onchange="updateFileName()" />
+                        <input type="file" id="profilePhotoInput" asp-for="ProfilePhoto" accept="image/*" style="display:none;" />
                     </div>
                 </div>
                 <div class="photo-hint">
@@ -106,26 +106,26 @@
                 <span asp-validation-for="ProfilePhoto" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
             </div>
 
-            <!-- Password -->
+            <!-- Password with toggle -->
             <div class="form-group">
                 <label for="Password"><i class="fas fa-lock"></i> Password</label>
                 <div class="input-wrapper" style="position:relative;">
                     <i class="fas fa-lock"></i>
                     <input asp-for="Password" placeholder="Min 6 characters" id="registerPassword" />
-                    <button type="button" onclick="togglePassword('registerPassword', 'registerEyeIcon')" style="position:absolute; right:16px; background:transparent; border:none; cursor:pointer; color:#7a8fa8; padding:0;">
+                    <button type="button" id="toggleRegisterPassword" style="position:absolute; right:16px; background:transparent; border:none; cursor:pointer; color:#7a8fa8; padding:0; z-index:2;">
                         <i class="fas fa-eye" id="registerEyeIcon"></i>
                     </button>
                 </div>
                 <span asp-validation-for="Password" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
             </div>
 
-            <!-- Confirm Password -->
+            <!-- Confirm Password with toggle -->
             <div class="form-group">
                 <label for="ConfirmPassword"><i class="fas fa-check-circle"></i> Confirm Password</label>
                 <div class="input-wrapper" style="position:relative;">
                     <i class="fas fa-check-circle"></i>
                     <input asp-for="ConfirmPassword" placeholder="Confirm your password" id="registerConfirmPassword" />
-                    <button type="button" onclick="togglePassword('registerConfirmPassword', 'registerConfirmEyeIcon')" style="position:absolute; right:16px; background:transparent; border:none; cursor:pointer; color:#7a8fa8; padding:0;">
+                    <button type="button" id="toggleRegisterConfirmPassword" style="position:absolute; right:16px; background:transparent; border:none; cursor:pointer; color:#7a8fa8; padding:0; z-index:2;">
                         <i class="fas fa-eye" id="registerConfirmEyeIcon"></i>
                     </button>
                 </div>
@@ -146,37 +146,74 @@
         </div>
     </div>
 
-    @section Scripts {
-        @{
-            await Html.RenderPartialAsync("_ValidationScriptsPartial");
-        }
+    <!-- All JavaScript here -->
+    <script>
+            // Wait for DOM to be fully loaded
+            document.addEventListener('DOMContentLoaded', function() {
 
-        <script>
-            // File name display
-            function updateFileName() {
-                var input = document.getElementById('profilePhotoInput');
-                var display = document.getElementById('file-name-display');
-                if (input.files && input.files.length > 0) {
-                    display.textContent = input.files[0].name;
-                } else {
-                    display.textContent = 'No file chosen';
-                }
-            }
+                // 1. Password toggle
+                const togglePasswordBtn = document.getElementById('toggleRegisterPassword');
+                const passwordInput = document.getElementById('registerPassword');
+                const passwordIcon = document.getElementById('registerEyeIcon');
 
-            // ✅ Password toggle - 和 Login 一样使用 function，接收参数
-            function togglePassword(inputId, iconId) {
-                var input = document.getElementById(inputId);
-                var icon = document.getElementById(iconId);
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.className = 'fas fa-eye-slash';
-                } else {
-                    input.type = 'password';
-                    icon.className = 'fas fa-eye';
+                if (togglePasswordBtn && passwordInput && passwordIcon) {
+                    togglePasswordBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (passwordInput.type === 'password') {
+                            passwordInput.type = 'text';
+                            passwordIcon.className = 'fas fa-eye-slash';
+                        } else {
+                            passwordInput.type = 'password';
+                            passwordIcon.className = 'fas fa-eye';
+                        }
+                    });
                 }
-            }
-        </script>
-    }
+
+                // 2. Confirm Password toggle
+                const toggleConfirmBtn = document.getElementById('toggleRegisterConfirmPassword');
+                const confirmInput = document.getElementById('registerConfirmPassword');
+                const confirmIcon = document.getElementById('registerConfirmEyeIcon');
+
+                if (toggleConfirmBtn && confirmInput && confirmIcon) {
+                    toggleConfirmBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (confirmInput.type === 'password') {
+                            confirmInput.type = 'text';
+                            confirmIcon.className = 'fas fa-eye-slash';
+                        } else {
+                            confirmInput.type = 'password';
+                            confirmIcon.className = 'fas fa-eye';
+                        }
+                    });
+                }
+
+                // 3. File upload - Browse button
+                const browseBtn = document.getElementById('browseBtn');
+                const fileInput = document.getElementById('profilePhotoInput');
+                const fileNameDisplay = document.getElementById('file-name-display');
+
+                if (browseBtn && fileInput) {
+                    browseBtn.addEventListener('click', function() {
+                        fileInput.click();
+                    });
+                }
+
+                if (fileInput && fileNameDisplay) {
+                    fileInput.addEventListener('change', function() {
+                        if (this.files && this.files.length > 0) {
+                            fileNameDisplay.textContent = this.files[0].name;
+                        } else {
+                            fileNameDisplay.textContent = 'No file chosen';
+                        }
+                    });
+                }
+            });
+    </script>
+
+    @* Validation Scripts *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
 
 </body>
 </html>
