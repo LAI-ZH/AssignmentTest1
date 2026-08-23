@@ -1,0 +1,364 @@
+﻿/* ----- global reset & base ----- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(145deg, #f7f9fc 0%, #eef2f7 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    margin: 0;
+}
+
+/* ----- main card ----- */
+.register-card {
+    max-width: 560px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 40px;
+    box-shadow: 0 20px 50px rgba(0, 20, 40, 0.12), 0 8px 24px rgba(0, 0, 0, 0.04);
+    padding: 2.5rem 2.2rem;
+    transition: box-shadow 0.2s ease;
+}
+
+/* ----- header / title ----- */
+.register-header {
+    margin-bottom: 2rem;
+}
+
+    .register-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #0b1a33;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .register-header h1 i {
+            color: #2d7aff;
+            font-size: 2rem;
+            background: #e9f0ff;
+            padding: 8px 10px 8px 12px;
+            border-radius: 18px;
+        }
+
+    .register-header p {
+        color: #5b6f87;
+        font-size: 0.95rem;
+        margin-top: 6px;
+        font-weight: 400;
+        border-left: 3px solid #2d7aff;
+        padding-left: 14px;
+        background: #f5f9ff;
+        border-radius: 0 12px 12px 0;
+        line-height: 1.4;
+        padding: 8px 14px;
+        display: inline-block;
+    }
+
+/* ----- form elements ----- */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 0.02em;
+        color: #1f2a44;
+        margin-bottom: 5px;
+    }
+
+        .form-group label i {
+            margin-right: 6px;
+            color: #2d7aff;
+            width: 18px;
+        }
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #f2f6fe;
+    border-radius: 60px;
+    transition: 0.15s ease;
+    border: 1.5px solid transparent;
+}
+
+    .input-wrapper:hover {
+        background: #edf3fd;
+    }
+
+    .input-wrapper:focus-within {
+        background: #ffffff;
+        border-color: #2d7aff;
+        box-shadow: 0 0 0 4px rgba(45, 122, 255, 0.12);
+    }
+
+    .input-wrapper i {
+        color: #5b7a9a;
+        padding: 0 0 0 18px;
+        font-size: 0.95rem;
+        opacity: 0.7;
+    }
+
+    .input-wrapper input,
+    .input-wrapper select {
+        width: 100%;
+        border: none;
+        background: transparent;
+        padding: 0.85rem 1rem 0.85rem 12px;
+        font-size: 0.95rem;
+        font-weight: 450;
+        color: #0b1a33;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .input-wrapper select {
+        appearance: none;
+        cursor: pointer;
+    }
+
+        .input-wrapper select option {
+            background: white;
+            color: #0b1a33;
+        }
+
+        /* custom arrow for select */
+        .input-wrapper select + i {
+            pointer-events: none;
+            margin-right: 14px;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+/* optional note */
+.optional-note {
+    font-size: 0.7rem;
+    color: #6f85a0;
+    margin-top: 4px;
+    padding-left: 18px;
+    font-weight: 400;
+}
+
+/* ----- file upload (profile photo) ----- */
+.photo-upload {
+    background: #f5f9ff;
+    border-radius: 60px;
+    padding: 0.4rem 0.4rem 0.4rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    border: 1.5px dashed #b8cef0;
+    transition: 0.15s;
+}
+
+    .photo-upload:hover {
+        background: #eef5ff;
+        border-color: #7fa3e0;
+    }
+
+    .photo-upload .file-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #1f2a44;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+        .photo-upload .file-label i {
+            color: #2d7aff;
+            font-size: 1.2rem;
+        }
+
+    .photo-upload .custom-file-input {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        border-radius: 40px;
+        padding: 0.2rem 0.2rem 0.2rem 1rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        border: 1px solid #dbe3ef;
+    }
+
+        .photo-upload .custom-file-input input[type="file"] {
+            display: none;
+        }
+
+    .photo-upload .file-picker-btn {
+        background: #1f2a44;
+        color: white;
+        border: none;
+        padding: 0.45rem 1.2rem;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.15s;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+
+        .photo-upload .file-picker-btn:hover {
+            background: #2d7aff;
+            transform: scale(1.02);
+        }
+
+    .photo-upload .file-name {
+        font-size: 0.8rem;
+        color: #4c617d;
+        padding-left: 6px;
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+.photo-hint {
+    font-size: 0.7rem;
+    color: #6f85a0;
+    margin-top: 8px;
+    padding-left: 4px;
+}
+
+/* ----- register button ----- */
+.register-action {
+    margin-top: 2rem;
+}
+
+.btn-register {
+    width: 100%;
+    background: #0b1a33;
+    border: none;
+    padding: 1rem;
+    border-radius: 60px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    box-shadow: 0 8px 18px rgba(11, 26, 51, 0.12);
+    letter-spacing: 0.3px;
+}
+
+    .btn-register i {
+        font-size: 1.2rem;
+        transition: transform 0.15s;
+    }
+
+    .btn-register:hover {
+        background: #1f2a44;
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(11, 26, 51, 0.18);
+    }
+
+    .btn-register:active {
+        transform: translateY(1px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    }
+
+/* ----- login link ----- */
+.login-link {
+    text-align: center;
+    margin-top: 1.8rem;
+    font-size: 0.95rem;
+    color: #2b3f5c;
+}
+
+    .login-link a {
+        color: #2d7aff;
+        font-weight: 600;
+        text-decoration: none;
+        margin-left: 4px;
+        border-bottom: 2px solid transparent;
+        transition: 0.1s;
+    }
+
+        .login-link a:hover {
+            border-bottom-color: #2d7aff;
+        }
+
+    .login-link i {
+        font-size: 0.8rem;
+        margin-right: 4px;
+    }
+
+/* ----- small screens tweaks ----- */
+@media (max-width: 480px) {
+    .register-card {
+        padding: 1.8rem 1.2rem;
+        border-radius: 32px;
+    }
+
+    .register-header h1 {
+        font-size: 1.6rem;
+    }
+
+    .photo-upload {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 1rem;
+    }
+
+        .photo-upload .custom-file-input {
+            justify-content: space-between;
+            padding: 0.2rem 0.2rem 0.2rem 1rem;
+        }
+
+        .photo-upload .file-name {
+            max-width: 90px;
+        }
+
+    .input-wrapper i {
+        padding-left: 14px;
+    }
+
+    .input-wrapper input,
+    .input-wrapper select {
+        padding: 0.75rem 0.8rem 0.75rem 10px;
+        font-size: 0.9rem;
+    }
+}
+
+/* hide default file input text */
+input[type="file"]::file-selector-button {
+    display: none;
+}
+
+/* small extra polish */
+.form-group:last-of-type {
+    margin-bottom: 0.5rem;
+}
+
+.fa-asterisk {
+    color: #c00b2b;
+    font-size: 0.55rem;
+    margin-left: 2px;
+    vertical-align: super;
+}
+
+/* password hint (min 6) */
+.hint-text {
+    font-size: 0.7rem;
+    color: #5b7a9a;
+    padding-left: 44px;
+    margin-top: 2px;
+}
