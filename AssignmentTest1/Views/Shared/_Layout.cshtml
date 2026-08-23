@@ -32,12 +32,6 @@
                             <span>Home</span>
                         </a>
                     </li>
-                    <li class="sidebar-item">
-                        <a class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Privacy" ? "active" : "")" asp-area="" asp-controller="Home" asp-action="Privacy">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>Privacy</span>
-                        </a>
-                    </li>
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {

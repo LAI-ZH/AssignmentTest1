@@ -1,382 +1,227 @@
 ﻿@{
     ViewData["Title"] = "Admin Dashboard";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null;  // ✅ 独立设计，不使用默认 Layout
 }
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/AdminDash.css" />
+</head>
+<body>
 
-<link rel="stylesheet" href="~/css/dashboard.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <div class="dashboard-container">
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-chart-pie me-2"></i>Admin Dashboard</h2>
-        <span class="badge bg-primary p-2">Welcome, @User.Identity.Name!</span>
-    </div>
+        <!-- ===== SIDEBAR ===== -->
+        <nav class="sidebar">
+            <div class="sidebar-logo">💪</div>
+            <ul class="sidebar-menu">
+                <li><a href="@Url.Action("Index", "Dashboard")" class="active"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a></li>
+                <li><a href="@Url.Action("Index", "User")"><i class="fas fa-users"></i><span>Users</span></a></li>
+                <li><a href="@Url.Action("Index", "Trainer")"><i class="fas fa-user-tie"></i><span>Trainers</span></a></li>
+                <li><a href="@Url.Action("Index", "Class")"><i class="fas fa-dumbbell"></i><span>Classes</span></a></li>
+                <li><a href="@Url.Action("Index", "Schedule")"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a></li>
+                <li><a href="@Url.Action("Plans", "Membership")"><i class="fas fa-crown"></i><span>Memberships</span></a></li>
+                <li><a href="@Url.Action("AdminIndex", "Booking")"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
+                <li style="margin-top:20px;">
+                    <a asp-controller="Account" asp-action="Logout" method="post" style="color:#f07a7a;">
+                        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
 
-    <!-- 统计卡片 - 第一行 -->
-        <!-- 管理员 -->
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card text-white bg-danger shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title text-white-50">Admins</h6>
-                                <h2 class="card-text mb-0">@ViewBag.TotalAdmins</h2>
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content">
+
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="dashboard-title">
+                    <i class="fas fa-chart-pie"></i>
+                    <h1>Dashboard</h1>
+                </div>
+                <div class="welcome-badge">
+                    <i class="fas fa-user-circle"></i> @User.Identity.Name
+                </div>
+            </header>
+
+            <!-- Stats Row 1 -->
+            <div class="stats-grid">
+                <div class="stat-card admin-card">
+                    <h3><i class="fas fa-user-shield" style="margin-right:6px;"></i> Admins</h3>
+                    <div class="number">@ViewBag.TotalAdmins</div>
+                    <div class="icon"><i class="fas fa-user-shield"></i></div>
+                </div>
+                <div class="stat-card trainer-card">
+                    <h3><i class="fas fa-user-tie" style="margin-right:6px;"></i> Trainers</h3>
+                    <div class="number">@ViewBag.TotalTrainers</div>
+                    <div class="icon"><i class="fas fa-user-tie"></i></div>
+                </div>
+                <div class="stat-card member-card">
+                    <h3><i class="fas fa-user" style="margin-right:6px;"></i> Members</h3>
+                    <div class="number">@ViewBag.TotalMembers</div>
+                    <div class="icon"><i class="fas fa-user"></i></div>
+                </div>
+            </div>
+
+            <!-- Stats Row 2 -->
+            <div class="stats-grid-secondary">
+                <div class="stat-card class-card">
+                    <h3><i class="fas fa-dumbbell" style="margin-right:6px;"></i> Total Classes</h3>
+                    <div class="number">@ViewBag.TotalClasses</div>
+                    <div class="icon"><i class="fas fa-dumbbell"></i></div>
+                </div>
+                <div class="stat-card booking-card">
+                    <h3><i class="fas fa-calendar-check" style="margin-right:6px;"></i> Total Bookings</h3>
+                    <div class="number">@ViewBag.TotalBookings</div>
+                    <div class="icon"><i class="fas fa-calendar-check"></i></div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="quick-actions-title">
+                    <i class="fas fa-bolt" style="color:#536cf5;"></i>
+                    <h2>Quick Actions</h2>
+                </div>
+                <div class="quick-actions-grid">
+                    <a href="@Url.Action("Index", "User")" class="quick-action"><i class="fas fa-users"></i> Manage Users</a>
+                    <a href="@Url.Action("Index", "Class")" class="quick-action green"><i class="fas fa-dumbbell"></i> Manage Classes</a>
+                    <a href="@Url.Action("Index", "Schedule")" class="quick-action orange"><i class="fas fa-calendar-alt"></i> Manage Schedules</a>
+                    <a href="@Url.Action("Plans", "Membership")" class="quick-action blue"><i class="fas fa-crown"></i> Memberships</a>
+                    <a href="@Url.Action("AdminIndex", "Booking")" class="quick-action green"><i class="fas fa-calendar-check"></i> Bookings</a>
+                    <a href="@Url.Action("Index", "Trainer")" class="quick-action orange"><i class="fas fa-user-tie"></i> Trainers</a>
+                </div>
+            </div>
+
+            <!-- Analytics / Charts -->
+            <div class="analytics-grid">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-users" style="color:#536cf5;"></i> User Roles</h2>
+                    </div>
+                    <div class="user-roles">
+                        <div class="role-item">
+                            <div class="role-info">
+                                <span class="role-dot" style="background:#ed5a42;"></span>
+                                Admin
                             </div>
-                            <i class="fas fa-user-shield fa-3x text-white-50"></i>
+                            <span class="role-percentage">@ViewBag.TotalAdmins</span>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 教练 -->
-            <div class="col-md-4">
-                <div class="card text-white bg-info shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title text-white-50">Trainers</h6>
-                                <h2 class="card-text mb-0">@ViewBag.TotalTrainers</h2>
+                        <div class="role-item">
+                            <div class="role-info">
+                                <span class="role-dot" style="background:#63c8d4;"></span>
+                                Trainer
                             </div>
-                            <i class="fas fa-user-tie fa-3x text-white-50"></i>
+                            <span class="role-percentage">@ViewBag.TotalTrainers</span>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 会员 -->
-            <div class="col-md-4">
-                <div class="card text-white bg-success shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title text-white-50">Members</h6>
-                                <h2 class="card-text mb-0">@ViewBag.TotalMembers</h2>
+                        <div class="role-item">
+                            <div class="role-info">
+                                <span class="role-dot" style="background:#55b58b;"></span>
+                                Member
                             </div>
-                            <i class="fas fa-user fa-3x text-white-50"></i>
+                            <span class="role-percentage">@ViewBag.TotalMembers</span>
+                        </div>
+                        <div class="total-users">
+                            <span>Total Users</span>
+                            <span>@(ViewBag.TotalAdmins + ViewBag.TotalTrainers + ViewBag.TotalMembers)</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-    </div>
-    <!-- 统计卡片 - 第二行 -->
-    <div class="row g-4 mt-2">
-        <div class="col-md-6">
-            <div class="card text-white bg-warning shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title text-white-50">Total Classes</h6>
-                            <h2 class="card-text mb-0">@ViewBag.TotalClasses</h2>
-                        </div>
-                        <i class="fas fa-dumbbell fa-3x text-white-50"></i>
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-bar" style="color:#536cf5;"></i> Monthly Bookings</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="monthlyBookingChart" height="250"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card text-white bg-secondary shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title text-white-50">Total Bookings</h6>
-                            <h2 class="card-text mb-0">@ViewBag.TotalBookings</h2>
-                        </div>
-                        <i class="fas fa-calendar-check fa-3x text-white-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Recent Activity -->
-    <div class="row mt-4">
-        <!-- Recent Bookings -->
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Bookings</h5>
-                </div>
-                <div class="card-body">
-                    @if (ViewBag.RecentBookings != null && ViewBag.RecentBookings.Count > 0)
-                    {
-                        <ul class="list-group list-group-flush">
+            <!-- Recent Activity -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px;">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-clock" style="color:#536cf5;"></i> Recent Bookings</h2>
+                    </div>
+                    <div>
+                        @if (ViewBag.RecentBookings != null && ViewBag.RecentBookings.Count > 0)
+                        {
                             @foreach (var booking in ViewBag.RecentBookings)
                             {
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>@booking.Member?.FullName</strong>
-                                        <span class="text-muted ms-2">booked</span>
-                                        <span class="badge bg-secondary">@booking.Schedule?.Class?.ClassName</span>
-                                    </div>
-                                    <small class="text-muted">@booking.BookedAt.ToString("dd/MM/yyyy HH:mm")</small>
-                                </li>
+                                <div class="booking-item">
+                                    <span class="booking-name">@booking.Member?.FullName</span>
+                                    <span class="booking-type">@booking.Schedule?.Class?.ClassName</span>
+                                    <span class="booking-date">@booking.BookedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
                             }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="text-muted text-center">No recent bookings</p>
-                    }
-                </div>
-            </div>
-        </div>
-
-    <!-- Upcoming Classes -->
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Upcoming Classes</h5>
-                <a asp-controller="Schedule" asp-action="Index" class="btn btn-sm btn-outline-primary">
-                    View All
-                </a>
-            </div>
-            <div class="card-body">
-                @if (ViewBag.UpcomingClasses != null && ViewBag.UpcomingClasses.Count > 0)
-                {
-                    <ul class="list-group list-group-flush">
-                        @foreach (var schedule in ViewBag.UpcomingClasses)
+                        }
+                        else
                         {
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>@schedule.Class?.ClassName</strong>
-                                    <span class="text-muted ms-2">@schedule.Venue</span>
-                                </div>
-                                <div>
-                                    <span class="badge bg-info">@schedule.ScheduleDate.ToString("dd/MM")</span>
-                                    <span class="badge bg-secondary">@schedule.StartTime.ToString(@"hh\:mm")</span>
-                                </div>
-                            </li>
+                            <div class="empty-state">No recent bookings</div>
                         }
-                    </ul>
-                }
-                else
-                {
-                    <p class="text-muted text-center">No upcoming classes</p>
-                }
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Actions -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-2">
-                    <div class="col-md-4">
-                        <a asp-controller="Trainer" asp-action="Index" class="btn btn-outline-primary w-100">
-                            <i class="fas fa-users me-2"></i>Add Trainer
-                        </a>
                     </div>
+                </div>
 
-                        <div class="col-md-4">
-                            <a asp-controller="User" asp-action="Index" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-users me-2"></i>Manage Users
-                            </a>
-                        </div>
-                        <div class="col-md-4">
-                            <a asp-controller="Class" asp-action="Index" class="btn btn-outline-success w-100">
-                                <i class="fas fa-dumbbell me-2"></i>Manage Classes
-                            </a>
-                        </div>
-                        <div class="col-md-4">
-                            <a asp-controller="Schedule" asp-action="Index" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-calendar-alt me-2"></i>Manage Schedules
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a asp-controller="Membership" asp-action="Plans" class="btn btn-outline-info w-100">
-                                <i class="fas fa-crown me-2"></i>Memberships
-                            </a>
-                        </div>
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-calendar-alt" style="color:#536cf5;"></i> Upcoming Classes</h2>
+                    </div>
+                    <div>
+                        @if (ViewBag.UpcomingClasses != null && ViewBag.UpcomingClasses.Count > 0)
+                        {
+                            @foreach (var schedule in ViewBag.UpcomingClasses)
+                            {
+                                <div class="booking-item">
+                                    <span class="booking-name">@schedule.Class?.ClassName</span>
+                                    <span class="booking-type">@schedule.Venue</span>
+                                    <span class="booking-date">@schedule.ScheduleDate.ToString("dd/MM/yyyy") @schedule.StartTime.ToString(@"hh\:mm")</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state">No upcoming classes</div>
+                        }
                     </div>
                 </div>
             </div>
-        </div>
+
+        </main>
     </div>
 
-    @* <!-- System Info -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>System Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <p><strong>Logged in as:</strong> @User.Identity.Name</p>
-                        </div>
-                        <div class="col-md-3">
-                            <p><strong>Role:</strong> <span class="badge bg-danger">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span></p>
-                        </div>
-                        <div class="col-md-3">
-                            <p><strong>Email:</strong> @User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</p>
-                        </div>
-                        <div class="col-md-3">
-                            <p><strong>System Status:</strong> <span class="badge bg-success">Running</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> *@
-
-    <!-- ===== CHARTS ===== -->
-    <div class="row mt-4">
-        <!-- 饼图：用户角色分布 -->
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>User Roles</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="userRoleChart" height="250"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- 柱状图：每月预订趋势 -->
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Monthly Bookings Trend</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="monthlyBookingChart" height="250"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 柱状图：最受欢迎课程 Top 5 -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Top 5 Most Popular Classes</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="topClassChart" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script>
-        // ============================================================
-        // Chart 1: User Roles (Pie Chart)
-        // ============================================================
-        var ctx1 = document.getElementById('userRoleChart').getContext('2d');
-        new Chart(ctx1, {
-            type: 'doughnut',
-            data: {
-                labels: @Html.Raw(Json.Serialize(ViewBag.UserRoleLabels)),
-                datasets: [{
-                    data: @Html.Raw(Json.Serialize(ViewBag.UserRoleData)),
-                    backgroundColor: @Html.Raw(Json.Serialize(ViewBag.UserRoleColors)),
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: { size: 13 },
-                            padding: 20
-                        }
-                    }
-                }
-            }
-        });
-
-        // ============================================================
-        // Chart 2: Monthly Bookings (Bar Chart)
-        // ============================================================
-        var ctx2 = document.getElementById('monthlyBookingChart').getContext('2d');
-        new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: @Html.Raw(Json.Serialize(ViewBag.MonthLabels)),
-                datasets: [{
-                    label: 'Bookings',
-                    data: @Html.Raw(Json.Serialize(ViewBag.MonthData)),
-                    backgroundColor: ['#4F6EF7', '#4F6EF7', '#4F6EF7', '#4F6EF7', '#4F6EF7', '#4F6EF7'],
-                    borderRadius: 6,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+            // Monthly Bookings Chart
+            var ctx = document.getElementById('monthlyBookingChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(ViewBag.MonthLabels ?? new string[] { })),
+                    datasets: [{
+                        label: 'Bookings',
+                        data: @Html.Raw(Json.Serialize(ViewBag.MonthData ?? new int[] { })),
+                        backgroundColor: '#536cf5',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
                     }
                 }
-            }
-        });
-
-        // ============================================================
-        // Chart 3: Top 5 Classes (Bar Chart)
-        // ============================================================
-        var ctx3 = document.getElementById('topClassChart').getContext('2d');
-        new Chart(ctx3, {
-            type: 'bar',
-            data: {
-                labels: @Html.Raw(Json.Serialize(ViewBag.TopClassLabels)),
-                datasets: [{
-                    label: 'Bookings',
-                    data: @Html.Raw(Json.Serialize(ViewBag.TopClassData)),
-                    backgroundColor: @Html.Raw(Json.Serialize(ViewBag.TopClassColors)),
-                    borderRadius: 6,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                }
-            }
-        });
+            });
     </script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-}
+</body>
+</html>

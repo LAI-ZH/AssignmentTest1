@@ -2,132 +2,181 @@
 
 @{
     ViewData["Title"] = "Register - FitBook";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null;
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-lg">
-                <div class="card-header bg-success text-white text-center py-3">
-                    <h4><i class="fas fa-user-plus me-2"></i>Register for FitBook</h4>
-                </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/Register.css" />
+</head>
+<body>
 
-                    <form asp-action="Register" method="post" enctype="multipart/form-data">
-                        @Html.AntiForgeryToken()
+    <div class="register-card">
+        <!-- Header -->
+        <div class="register-header">
+            <h1>
+                <i class="fas fa-dumbbell"></i> FitBook
+            </h1>
+            <p><i class="fas fa-rocket" style="margin-right:6px;"></i> Start your fitness journey today</p>
+        </div>
 
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="FullName" class="form-label fw-bold"></label>
-                            <input asp-for="FullName" class="form-control" placeholder="Enter your full name" />
-                            <span asp-validation-for="FullName" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label fw-bold"></label>
-                            <input asp-for="Email" class="form-control" placeholder="Enter your email" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Gender" class="form-label fw-bold"></label>
-                            <select asp-for="Gender" class="form-select">
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            <span asp-validation-for="Gender" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Phone" class="form-label fw-bold"></label>
-                            <input asp-for="Phone" class="form-control" placeholder="Enter your phone number (optional)" />
-                            <span asp-validation-for="Phone" class="text-danger"></span>
-                        </div>
-
-                    <!-- Profile Photo -->
-                    <div class="mb-3">
-                        <label asp-for="ProfilePhoto" class="form-label fw-bold"></label>
-                        <input asp-for="ProfilePhoto" class="form-control" type="file" accept="image/*" />
-                        <span class="text-muted small">Upload a profile photo (JPG, PNG, GIF)</span>
-                        <span asp-validation-for="ProfilePhoto" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label fw-bold"></label>
-                        <div class="password-toggle">
-                            <input asp-for="Password" class="form-control" placeholder="Create a password (min 6 characters)" id="registerPassword" />
-                            <button type="button" class="toggle-icon" id="toggleRegisterPassword" tabindex="-1">
-                                <i class="fas fa-eye" id="registerEyeIcon"></i>
-                            </button>
-                        </div>
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label fw-bold"></label>
-                        <div class="password-toggle">
-                            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm your password" id="registerConfirmPassword" />
-                            <button type="button" class="toggle-icon" id="toggleRegisterConfirmPassword" tabindex="-1">
-                                <i class="fas fa-eye" id="registerConfirmEyeIcon"></i>
-                            </button>
-                        </div>
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                    </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-user-plus me-2"></i>Register
-                            </button>
-                        </div>
-                    </form>
-
-                    <hr />
-
-                    <div class="text-center">
-                        <p>Already have an account? <a asp-action="Login" class="text-primary fw-bold">Login here</a></p>
-                    </div>
-                </div>
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger" style="padding:0.75rem 1rem; border-radius:12px; background:#FEF2F2; color:#991B1B; border:0.5px solid #FECACA; margin-bottom:1.25rem;">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
             </div>
+        }
+
+        @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { enctype = "multipart/form-data", @class = "register-form" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="padding:0.75rem 1rem; border-radius:12px; background:#FEF2F2; color:#991B1B; border:0.5px solid #FECACA; margin-bottom:1.25rem;"></div>
+
+            <!-- Full Name -->
+            <div class="form-group">
+                <label for="FullName"><i class="fas fa-user"></i> Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input asp-for="FullName" placeholder="Enter your full name" />
+                </div>
+                <span asp-validation-for="FullName" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label for="Email"><i class="fas fa-envelope"></i> Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input asp-for="Email" placeholder="you@example.com" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+                <label for="Gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-venus-mars"></i>
+                    <select asp-for="Gender">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <span asp-validation-for="Gender" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+                <label for="Phone"><i class="fas fa-phone"></i> Phone Number</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone"></i>
+                    <input asp-for="Phone" placeholder="012-3456789" />
+                </div>
+                <span asp-validation-for="Phone" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
+            </div>
+
+            <!-- Profile Photo -->
+            <div class="form-group">
+                <label for="ProfilePhoto"><i class="fas fa-image"></i> Profile Photo</label>
+                <div class="photo-upload">
+                    <span class="file-label">
+                        <i class="fas fa-camera"></i> Upload photo
+                    </span>
+                    <div class="custom-file-input">
+                        <span class="file-name" id="file-name-display">No file chosen</span>
+                        <button type="button" class="file-picker-btn" onclick="document.getElementById('profilePhotoInput').click();">
+                            <i class="fas fa-folder-open" style="margin-right:4px;"></i> Browse
+                        </button>
+                        <input type="file" id="profilePhotoInput" asp-for="ProfilePhoto" accept="image/*" onchange="updateFileName()" />
+                    </div>
+                </div>
+                <div class="photo-hint">
+                    <i class="fas fa-info-circle" style="margin-right:4px;"></i> JPG, PNG, GIF (max 5MB)
+                </div>
+                <span asp-validation-for="ProfilePhoto" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="Password"><i class="fas fa-lock"></i> Password</label>
+                <div class="input-wrapper" style="position:relative;">
+                    <i class="fas fa-lock"></i>
+                    <input asp-for="Password" placeholder="Min 6 characters" id="registerPassword" />
+                    <button type="button" onclick="togglePassword('registerPassword', 'registerEyeIcon')" style="position:absolute; right:16px; background:transparent; border:none; cursor:pointer; color:#7a8fa8; padding:0;">
+                        <i class="fas fa-eye" id="registerEyeIcon"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label for="ConfirmPassword"><i class="fas fa-check-circle"></i> Confirm Password</label>
+                <div class="input-wrapper" style="position:relative;">
+                    <i class="fas fa-check-circle"></i>
+                    <input asp-for="ConfirmPassword" placeholder="Confirm your password" id="registerConfirmPassword" />
+                    <button type="button" onclick="togglePassword('registerConfirmPassword', 'registerConfirmEyeIcon')" style="position:absolute; right:16px; background:transparent; border:none; cursor:pointer; color:#7a8fa8; padding:0;">
+                        <i class="fas fa-eye" id="registerConfirmEyeIcon"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="ConfirmPassword" class="text-danger" style="font-size:0.8rem; color:#DC3545;"></span>
+            </div>
+
+            <div class="register-action">
+                <button type="submit" class="btn-register">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </div>
+        }
+
+        <div class="login-link">
+            <i class="fas fa-arrow-left" style="font-size:0.75rem;"></i>
+            Already have an account?
+            <a asp-action="Login">Sign In</a>
         </div>
     </div>
-</div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+
+        <script>
+            // File name display
+            function updateFileName() {
+                var input = document.getElementById('profilePhotoInput');
+                var display = document.getElementById('file-name-display');
+                if (input.files && input.files.length > 0) {
+                    display.textContent = input.files[0].name;
+                } else {
+                    display.textContent = 'No file chosen';
+                }
+            }
+
+            // ✅ Password toggle - 和 Login 一样使用 function，接收参数
+            function togglePassword(inputId, iconId) {
+                var input = document.getElementById(inputId);
+                var icon = document.getElementById(iconId);
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            }
+        </script>
     }
-}
-<script>
-    // Register Password toggle
-    document.getElementById('toggleRegisterPassword').addEventListener('click', function() {
-        var passwordInput = document.getElementById('registerPassword');
-        var eyeIcon = document.getElementById('registerEyeIcon');
 
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            eyeIcon.className = 'fas fa-eye-slash';
-        } else {
-            passwordInput.type = 'password';
-            eyeIcon.className = 'fas fa-eye';
-        }
-    });
-
-    // Register Confirm Password toggle
-    document.getElementById('toggleRegisterConfirmPassword').addEventListener('click', function() {
-        var passwordInput = document.getElementById('registerConfirmPassword');
-        var eyeIcon = document.getElementById('registerConfirmEyeIcon');
-
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            eyeIcon.className = 'fas fa-eye-slash';
-        } else {
-            passwordInput.type = 'password';
-            eyeIcon.className = 'fas fa-eye';
-        }
-    });
-</script>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-}
+</body>
+</html>
