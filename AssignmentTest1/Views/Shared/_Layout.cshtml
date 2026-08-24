@@ -141,7 +141,7 @@
                         <li class="sidebar-divider"></li>
 
                         <li class="sidebar-item">
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="sidebar-logout-form">
+                            <form asp-controller="Account" asp-action="Logout" method="post" >
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="sidebar-link sidebar-logout-btn">
                                     <i class="fas fa-sign-out-alt"></i>

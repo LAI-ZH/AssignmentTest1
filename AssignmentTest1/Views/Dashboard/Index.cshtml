@@ -29,9 +29,13 @@
                 <li><a href="@Url.Action("Plans", "Membership")"><i class="fas fa-crown"></i><span>Memberships</span></a></li>
                 <li><a href="@Url.Action("AdminIndex", "Booking")"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
                 <li style="margin-top:20px;">
-                    <a asp-controller="Account" asp-action="Logout" method="post" style="color:#f07a7a;">
-                        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
-                    </a>
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="sidebar-link sidebar-logout-btn" style="color:#f07a7a; background:transparent; border:none; width:100%; text-align:left; cursor:pointer;">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
                 </li>
             </ul>
         </nav>
