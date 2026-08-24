@@ -1,0 +1,662 @@
+﻿/* ----- Trainer Schedule Styles ----- */
+.trainer-schedule {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 2rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* Schedule Header */
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+    .schedule-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0b1a33;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .schedule-header h1 i {
+            color: #2d7aff;
+            background: #e9f0ff;
+            padding: 10px;
+            border-radius: 14px;
+            font-size: 1.8rem;
+        }
+
+.schedule-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    border: 1.5px solid #eef2f7;
+    transition: all 0.2s ease;
+}
+
+    .search-box:focus-within {
+        border-color: #2d7aff;
+        box-shadow: 0 0 0 3px rgba(45, 122, 255, 0.1);
+    }
+
+    .search-box i {
+        color: #94a3b8;
+        margin-right: 8px;
+    }
+
+    .search-box input {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 0.9rem;
+        color: #0b1a33;
+        width: 180px;
+    }
+
+.filter-btn {
+    background: white;
+    border: 1.5px solid #eef2f7;
+    padding: 0.5rem 1.25rem;
+    border-radius: 50px;
+    font-weight: 500;
+    color: #1f2a44;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .filter-btn:hover {
+        background: #f2f6fe;
+        border-color: #2d7aff;
+    }
+
+/* Stats Overview */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #eef2f7;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+    .stat-item .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-item .stat-label {
+        font-size: 0.8rem;
+        color: #6f85a0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-item .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0b1a33;
+    }
+
+    .stat-item .stat-icon {
+        color: #2d7aff;
+        font-size: 1.5rem;
+        opacity: 0.7;
+    }
+
+    .stat-item.total .stat-value {
+        color: #0b1a33;
+    }
+
+    .stat-item.bookings .stat-value {
+        color: #2d7aff;
+    }
+
+    .stat-item.cancelled .stat-value {
+        color: #ef4444;
+    }
+
+    .stat-item.full .stat-value {
+        color: #f59e0b;
+    }
+
+/* Schedule Table */
+.table-container {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef2f7;
+    overflow-x: auto;
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+    min-width: 900px;
+}
+
+    .schedule-table thead th {
+        background: #f8fafc;
+        color: #1f2a44;
+        font-weight: 600;
+        padding: 1rem 0.75rem;
+        text-align: left;
+        border-bottom: 2px solid #eef2f7;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .schedule-table tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f1f4f9;
+    }
+
+        .schedule-table tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.002);
+        }
+
+    .schedule-table tbody td {
+        padding: 1rem 0.75rem;
+        color: #2b3f5c;
+        border-bottom: 1px solid #f1f4f9;
+        vertical-align: middle;
+    }
+
+    .schedule-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+/* Class Name with Icon */
+.class-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.class-icon {
+    width: 36px;
+    height: 36px;
+    background: #e9f0ff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2d7aff;
+}
+
+.class-name-cell .class-title {
+    font-weight: 600;
+    color: #0b1a33;
+}
+
+.class-name-cell .class-subtitle {
+    font-size: 0.75rem;
+    color: #6f85a0;
+}
+
+/* Date and Time */
+.date-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+    .date-cell .date-main {
+        font-weight: 500;
+        color: #0b1a33;
+    }
+
+    .date-cell .date-day {
+        font-size: 0.75rem;
+        color: #6f85a0;
+    }
+
+.time-cell {
+    font-weight: 500;
+    color: #0b1a33;
+}
+
+    .time-cell .time-duration {
+        font-size: 0.75rem;
+        color: #6f85a0;
+        font-weight: 400;
+    }
+
+/* Venue */
+.venue-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .venue-cell i {
+        color: #6f85a0;
+        font-size: 0.9rem;
+    }
+
+/* Bookings with Progress */
+.booking-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 120px;
+}
+
+.booking-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+    .booking-info .booked {
+        font-weight: 600;
+        color: #0b1a33;
+    }
+
+    .booking-info .capacity {
+        color: #6f85a0;
+    }
+
+.booking-progress {
+    width: 100%;
+    height: 4px;
+    background: #eef2f7;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+    .booking-progress .progress-bar {
+        height: 100%;
+        background: #2d7aff;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+        .booking-progress .progress-bar.warning {
+            background: #f59e0b;
+        }
+
+        .booking-progress .progress-bar.danger {
+            background: #ef4444;
+        }
+
+        .booking-progress .progress-bar.success {
+            background: #10b981;
+        }
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+    .status-badge i {
+        font-size: 0.6rem;
+    }
+
+    .status-badge.available {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.full {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-badge.ongoing {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+    .action-btn.view {
+        background: #e9f0ff;
+        color: #2d7aff;
+    }
+
+        .action-btn.view:hover {
+            background: #2d7aff;
+            color: white;
+            transform: scale(1.05);
+        }
+
+    .action-btn.edit {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+        .action-btn.edit:hover {
+            background: #1d4ed8;
+            color: white;
+            transform: scale(1.05);
+        }
+
+    .action-btn.cancel {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+
+        .action-btn.cancel:hover {
+            background: #ef4444;
+            color: white;
+            transform: scale(1.05);
+        }
+
+/* Table Footer */
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0 0 0;
+    border-top: 1px solid #eef2f7;
+    margin-top: 1rem;
+}
+
+    .table-footer .total-count {
+        font-size: 0.9rem;
+        color: #6f85a0;
+    }
+
+        .table-footer .total-count strong {
+            color: #0b1a33;
+        }
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+}
+
+    .pagination button {
+        padding: 0.4rem 0.9rem;
+        border: 1px solid #eef2f7;
+        border-radius: 8px;
+        background: white;
+        color: #1f2a44;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .pagination button:hover {
+            background: #f2f6fe;
+            border-color: #2d7aff;
+        }
+
+        .pagination button.active {
+            background: #2d7aff;
+            color: white;
+            border-color: #2d7aff;
+        }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .schedule-table {
+        min-width: 750px;
+    }
+}
+
+@media (max-width: 768px) {
+    .trainer-schedule {
+        padding: 1rem;
+    }
+
+    .schedule-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .schedule-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+        .search-box input {
+            width: 100%;
+        }
+
+    .filter-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .stats-overview {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .stat-item {
+        padding: 0.75rem 1rem;
+    }
+
+    .table-container {
+        padding: 1rem;
+    }
+
+    .schedule-table {
+        font-size: 0.8rem;
+        min-width: 650px;
+    }
+
+        .schedule-table thead th,
+        .schedule-table tbody td {
+            padding: 0.75rem 0.5rem;
+        }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .booking-cell {
+        min-width: 80px;
+    }
+
+    .table-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-overview {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .stat-item .stat-value {
+        font-size: 1.2rem;
+    }
+
+    .stat-item .stat-icon {
+        font-size: 1.2rem;
+    }
+
+    .schedule-table {
+        font-size: 0.7rem;
+        min-width: 550px;
+    }
+
+        .schedule-table thead th,
+        .schedule-table tbody td {
+            padding: 0.5rem 0.3rem;
+        }
+
+    .action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .trainer-schedule {
+        background: #0f172a;
+    }
+
+    .schedule-header h1 {
+        color: #f1f5f9;
+    }
+
+    .search-box {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+        .search-box input {
+            color: #f1f5f9;
+        }
+
+    .filter-btn {
+        background: #1e293b;
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+
+        .filter-btn:hover {
+            background: #334155;
+        }
+
+    .stat-item {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+        .stat-item .stat-label {
+            color: #94a3b8;
+        }
+
+        .stat-item .stat-value {
+            color: #f1f5f9;
+        }
+
+    .table-container {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    .schedule-table thead th {
+        background: #1e293b;
+        color: #e2e8f0;
+        border-color: #334155;
+    }
+
+    .schedule-table tbody td {
+        color: #cbd5e1;
+        border-color: #334155;
+    }
+
+    .schedule-table tbody tr:hover {
+        background: #1e293b;
+    }
+
+    .class-name-cell .class-title {
+        color: #f1f5f9;
+    }
+
+    .class-icon {
+        background: #334155;
+        color: #60a5fa;
+    }
+
+    .date-cell .date-main {
+        color: #f1f5f9;
+    }
+
+    .time-cell {
+        color: #f1f5f9;
+    }
+
+    .booking-info .booked {
+        color: #f1f5f9;
+    }
+
+    .table-footer {
+        border-color: #334155;
+    }
+
+        .table-footer .total-count {
+            color: #94a3b8;
+        }
+
+            .table-footer .total-count strong {
+                color: #f1f5f9;
+            }
+
+    .pagination button {
+        background: #1e293b;
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+
+        .pagination button:hover {
+            background: #334155;
+        }
+
+        .pagination button.active {
+            background: #2d7aff;
+            color: white;
+        }
+}
