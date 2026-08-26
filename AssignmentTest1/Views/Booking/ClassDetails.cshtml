@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+﻿﻿@using System.Security.Claims
 @model AssignmentTest1.Models.ViewModels.ClassDetailsViewModel
 
 @{
@@ -66,6 +66,27 @@
                     <h4><i class="fas fa-dumbbell me-2"></i>@Model.Class?.ClassName</h4>
                 </div>
                 <div class="card-body">
+
+                    <!-- ===== 新增：会员剩余预订次数提示 ===== -->
+                    @if (User.IsInRole("Member"))
+                    {
+                        var remaining = ViewBag.BookingsRemaining;
+                        <div class="mb-3">
+                            @if (remaining == 999)
+                            {
+                                <span class="text-muted small"><i class="fas fa-infinity me-1"></i>Unlimited classes</span>
+                            }
+                            else if (remaining > 0)
+                            {
+                                <span class="text-muted small"><i class="fas fa-calendar-alt me-1"></i>@remaining classes remaining</span>
+                            }
+                            else if (remaining == 0)
+                            {
+                                <span class="text-danger small"><i class="fas fa-exclamation-circle me-1"></i>No classes remaining</span>
+                            }
+                        </div>
+                    }
+                    <!-- ==================================== -->
                     <!-- Class Info -->
                     <div class="detail-row">
                         <span class="detail-label">Category</span>

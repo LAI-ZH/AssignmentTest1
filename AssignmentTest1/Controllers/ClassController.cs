@@ -1,10 +1,9 @@
-﻿using AssignmentTest1.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using AssignmentTest1.Data;
 using AssignmentTest1.Models.Entities;
 using AssignmentTest1.Models.ViewModels;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace AssignmentTest1.Controllers
 {
@@ -18,34 +17,114 @@ namespace AssignmentTest1.Controllers
             _context = context;
         }
 
-        // GET: /Class/Index - 课程列表
-        public async Task<IActionResult> Index()
+        // GET: /Class/Index
+        public async Task<IActionResult> Index(
+            string? search = null,
+            string? category = null,
+            string? status = null,
+            string? sortBy = "ClassName",
+            string? sortOrder = "asc",
+            int page = 1,
+            int pageSize = 10)
         {
-            var classes = await _context.FitnessClasses
+            var query = _context.FitnessClasses
                 .Include(c => c.Trainer)
                 .Include(c => c.Schedules)
-                .OrderBy(c => c.ClassName)
+                .AsQueryable();
+
+            // ===== 搜索 (Searching) =====
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Trim();
+                query = query.Where(c =>
+                    c.ClassName.Contains(search) ||
+                    c.Category.Contains(search) ||
+                    c.Trainer.FullName.Contains(search));
+            }
+
+            // ===== 筛选 (Filtering) =====
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(c => c.Category == category);
+            }
+
+            // ✅ 按状态筛选（新增）
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status == "Active")
+                    query = query.Where(c => c.IsActive == true);
+                else if (status == "Inactive")
+                    query = query.Where(c => c.IsActive == false);
+            }
+
+            // ===== 排序 (Sorting) =====
+            sortBy = string.IsNullOrEmpty(sortBy) ? "ClassName" : sortBy;
+            sortOrder = string.IsNullOrEmpty(sortOrder) ? "asc" : sortOrder;
+
+            query = sortBy.ToLower() switch
+            {
+                "id" => sortOrder == "asc" ? query.OrderBy(c => c.ClassId) : query.OrderByDescending(c => c.ClassId),
+                "classname" => sortOrder == "asc" ? query.OrderBy(c => c.ClassName) : query.OrderByDescending(c => c.ClassName),
+                "category" => sortOrder == "asc" ? query.OrderBy(c => c.Category) : query.OrderByDescending(c => c.Category),
+                "trainer" => sortOrder == "asc" ? query.OrderBy(c => c.Trainer.FullName) : query.OrderByDescending(c => c.Trainer.FullName),
+                "capacity" => sortOrder == "asc" ? query.OrderBy(c => c.MaxCapacity) : query.OrderByDescending(c => c.MaxCapacity),
+                "schedules" => sortOrder == "asc" ? query.OrderBy(c => c.Schedules.Count) : query.OrderByDescending(c => c.Schedules.Count),
+                "status" => sortOrder == "asc" ? query.OrderBy(c => c.IsActive) : query.OrderByDescending(c => c.IsActive),
+                _ => sortOrder == "asc" ? query.OrderBy(c => c.ClassName) : query.OrderByDescending(c => c.ClassName)
+            };
+
+            // ===== 分页 (Paging) =====
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var classes = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
-            return View(classes);
+
+            // 获取所有类别（用于筛选下拉菜单）
+            var categories = await _context.FitnessClasses
+                .Select(c => c.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            var model = new ClassIndexViewModel
+            {
+                Classes = classes,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = search,
+                SelectedCategory = category,
+                SelectedStatus = status,
+                SortBy = sortBy,
+                SortOrder = sortOrder,
+                Categories = categories
+            };
+
+            return View(model);
         }
 
-        // GET: /Class/Create - 创建课程页面
+        // GET: /Class/Create
         public async Task<IActionResult> Create()
         {
-            var trainers = await GetTrainers();
-            ViewBag.Trainers = new SelectList(trainers, "TrainerId", "FullName");
+            ViewBag.Trainers = await GetTrainers();
             return View();
         }
 
-        // POST: /Class/Create - 创建课程
+        // POST: /Class/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ClassViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                var trainers = await GetTrainers();
-                ViewBag.Trainers = new SelectList(trainers, "TrainerId", "FullName");
+                ViewBag.Trainers = await GetTrainers();
                 return View(model);
             }
 
@@ -66,7 +145,7 @@ namespace AssignmentTest1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: /Class/Edit/5 - 编辑课程页面
+        // GET: /Class/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var fitnessClass = await _context.FitnessClasses.FindAsync(id);
@@ -86,12 +165,11 @@ namespace AssignmentTest1.Controllers
                 IsActive = fitnessClass.IsActive
             };
 
-            var trainers = await GetTrainers();
-            ViewBag.Trainers = new SelectList(trainers, "TrainerId", "FullName", fitnessClass.TrainerId);
+            ViewBag.Trainers = await GetTrainers();
             return View(model);
         }
 
-        // POST: /Class/Edit/5 - 更新课程
+        // POST: /Class/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ClassViewModel model)
@@ -103,8 +181,7 @@ namespace AssignmentTest1.Controllers
 
             if (!ModelState.IsValid)
             {
-                var trainers = await GetTrainers();
-                ViewBag.Trainers = new SelectList(trainers, "TrainerId", "FullName", model.TrainerId);
+                ViewBag.Trainers = await GetTrainers();
                 return View(model);
             }
 
@@ -128,7 +205,7 @@ namespace AssignmentTest1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Class/Delete/5 - 删除课程
+        // POST: /Class/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -142,7 +219,6 @@ namespace AssignmentTest1.Controllers
                 return NotFound();
             }
 
-            // 检查是否有日程
             if (fitnessClass.Schedules != null && fitnessClass.Schedules.Any())
             {
                 TempData["Error"] = $"Cannot delete '{fitnessClass.ClassName}' because it has schedules.";
@@ -157,7 +233,7 @@ namespace AssignmentTest1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: /Class/Details/5 - 课程详情
+        // GET: /Class/Details/5
         public async Task<IActionResult> Details(int id)
         {
             var fitnessClass = await _context.FitnessClasses

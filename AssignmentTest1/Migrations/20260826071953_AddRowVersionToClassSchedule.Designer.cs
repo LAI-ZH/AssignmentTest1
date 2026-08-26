@@ -4,6 +4,7 @@ using AssignmentTest1.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssignmentTest1.Migrations
 {
     [DbContext(typeof(FitBookDbContext))]
-    partial class FitBookDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260826071953_AddRowVersionToClassSchedule")]
+    partial class AddRowVersionToClassSchedule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,6 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Admin Dashboard";
-    Layout = null;  // ✅ 独立设计，不使用默认 Layout
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -57,33 +57,43 @@
             <!-- Stats Row 1 -->
             <div class="stats-grid">
                 <div class="stat-card admin-card">
-                    <h3><i class="fas fa-user-shield" style="margin-right:6px;"></i> Admins</h3>
+                    <h3><i class="fas fa-user-shield"></i> Admins</h3>
                     <div class="number">@ViewBag.TotalAdmins</div>
                     <div class="icon"><i class="fas fa-user-shield"></i></div>
                 </div>
                 <div class="stat-card trainer-card">
-                    <h3><i class="fas fa-user-tie" style="margin-right:6px;"></i> Trainers</h3>
+                    <h3><i class="fas fa-user-tie"></i> Trainers</h3>
                     <div class="number">@ViewBag.TotalTrainers</div>
                     <div class="icon"><i class="fas fa-user-tie"></i></div>
                 </div>
                 <div class="stat-card member-card">
-                    <h3><i class="fas fa-user" style="margin-right:6px;"></i> Members</h3>
+                    <h3><i class="fas fa-user"></i> Members</h3>
                     <div class="number">@ViewBag.TotalMembers</div>
                     <div class="icon"><i class="fas fa-user"></i></div>
+                    <div style="font-size:12px; margin-top:4px; opacity:0.8;">
+                        ✅ @ViewBag.ActiveMembers Active | 🔒 @ViewBag.LockedMembers Locked
+                    </div>
                 </div>
             </div>
 
-            <!-- Stats Row 2 -->
             <div class="stats-grid-secondary">
                 <div class="stat-card class-card">
-                    <h3><i class="fas fa-dumbbell" style="margin-right:6px;"></i> Total Classes</h3>
+                    <h3><i class="fas fa-dumbbell"></i> Classes</h3>
                     <div class="number">@ViewBag.TotalClasses</div>
                     <div class="icon"><i class="fas fa-dumbbell"></i></div>
+                    <div style="font-size:12px; margin-top:4px; opacity:0.8;">
+                        ✅ @ViewBag.ActiveClasses Active | ⛔ @ViewBag.InactiveClasses Inactive
+                    </div>
                 </div>
                 <div class="stat-card booking-card">
-                    <h3><i class="fas fa-calendar-check" style="margin-right:6px;"></i> Total Bookings</h3>
+                    <h3><i class="fas fa-calendar-check"></i> Bookings</h3>
                     <div class="number">@ViewBag.TotalBookings</div>
                     <div class="icon"><i class="fas fa-calendar-check"></i></div>
+                    <div style="font-size:12px; margin-top:4px; opacity:0.8;">
+                        ✅ @ViewBag.ConfirmedBookings Confirmed |
+                        📋 @ViewBag.AttendedBookings Attended |
+                        ❌ @ViewBag.CancelledBookings Cancelled
+                    </div>
                 </div>
             </div>
 

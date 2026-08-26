@@ -23,6 +23,7 @@ namespace AssignmentTest1.Controllers
         public async Task<IActionResult> Index(
             string? search = null,
             string? role = null,
+            string? status = null,
             string? sortBy = "FullName",
             string? sortOrder = "asc",
             int page = 1,
@@ -47,6 +48,15 @@ namespace AssignmentTest1.Controllers
             if (!string.IsNullOrEmpty(role))
             {
                 query = query.Where(u => u.Role == role);
+            }
+
+            // ✅ 按状态筛选（新增）
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status == "Active")
+                    query = query.Where(u => u.IsLocked == false);
+                else if (status == "Locked")
+                    query = query.Where(u => u.IsLocked == true);
             }
 
             // ===== 排序 (Sorting) =====

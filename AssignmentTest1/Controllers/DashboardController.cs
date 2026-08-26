@@ -32,13 +32,51 @@ namespace AssignmentTest1.Controllers
                 .Where(u => u.Role == "Member")
                 .CountAsync();
 
+            // ✅ 新增：按状态统计会员
+            var activeMembers = await _context.Users
+                .Where(u => u.Role == "Member" && u.IsLocked == false)
+                .CountAsync();
+
+            var lockedMembers = await _context.Users
+                .Where(u => u.Role == "Member" && u.IsLocked == true)
+                .CountAsync();
+
+            // ✅ 新增：按状态统计课程
+            var activeClasses = await _context.FitnessClasses
+                .Where(c => c.IsActive)
+                .CountAsync();
+
+            var inactiveClasses = await _context.FitnessClasses
+                .Where(c => !c.IsActive)
+                .CountAsync();
+
+            // ✅ 新增：按状态统计预订
+            var confirmedBookings = await _context.Bookings
+                .Where(b => b.Status == "Confirmed")
+                .CountAsync();
+
+            var attendedBookings = await _context.Bookings
+                .Where(b => b.Status == "Attended")
+                .CountAsync();
+
+            var cancelledBookings = await _context.Bookings
+                .Where(b => b.Status == "Cancelled")
+                .CountAsync();
+
             var totalUsers = await _context.Users.CountAsync();
 
             ViewBag.TotalAdmins = totalAdmins;
             ViewBag.TotalTrainers = totalTrainers;
             ViewBag.TotalMembers = totalMembers;
+            ViewBag.ActiveMembers = activeMembers;
+            ViewBag.LockedMembers = lockedMembers;
             ViewBag.TotalClasses = await _context.FitnessClasses.CountAsync();
+            ViewBag.ActiveClasses = activeClasses;
+            ViewBag.InactiveClasses = inactiveClasses;
             ViewBag.TotalBookings = await _context.Bookings.CountAsync();
+            ViewBag.ConfirmedBookings = confirmedBookings;
+            ViewBag.AttendedBookings = attendedBookings;
+            ViewBag.CancelledBookings = cancelledBookings;
 
             //Chart 1
             ViewBag.UserRoleLabels = new[] { "Admin", "Trainer", "Member" };
@@ -155,24 +193,27 @@ namespace AssignmentTest1.Controllers
             }
 
             var memberId = int.Parse(userIdClaim);
+            var today = DateOnly.FromDateTime(DateTime.Now);
 
             var allSchedules = await _context.ClassSchedules
                 .Include(s => s.Class)
                     .ThenInclude(c => c.Trainer)
                 .Include(s => s.Bookings)
-                .OrderBy(s => s.ScheduleDate)
+                .OrderBy(s => s.ScheduleDate >= today)
                 .ThenBy(s => s.StartTime)
                 .ToListAsync() ?? new List<ClassSchedule>();
             ViewBag.AllSchedules = allSchedules;
 
 
             var myBookings = await _context.Bookings
-                .Where(b => b.MemberId == memberId)
+                .Where(b => b.MemberId == memberId && b.Status == "Confirmed")
                 .Include(b => b.Schedule)
                     .ThenInclude(s => s.Class)
-                .OrderByDescending(b => b.BookedAt)
-                .ToListAsync() ?? new List<Booking>();
+                    .ThenInclude(c => c.Trainer)
+                .ToListAsync();
             ViewBag.MyBookings = myBookings;
+
+            ViewBag.AllSchedules = allSchedules;
 
             var upcomingBookings = await _context.Bookings
                 .Where(b => b.MemberId == memberId)

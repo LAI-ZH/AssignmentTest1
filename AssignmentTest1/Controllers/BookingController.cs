@@ -24,18 +24,66 @@ namespace AssignmentTest1.Controllers
 
         // GET: /Booking/ClassCatalog - 浏览课程目录
         [Authorize(Roles = "Member")]
-        public async Task<IActionResult> ClassCatalog()
+        public async Task<IActionResult> ClassCatalog(string? search = null,string? category = null)
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
-            var classes = await _context.FitnessClasses
-                .Include(c => c.Trainer)
-                .Include(c => c.Schedules)
-                    .ThenInclude(s => s.Bookings)
-                .Where(c => c.IsActive)
-                .Where(c => c.Schedules.Any(s => s.ScheduleDate >= today))
-                .OrderBy(c => c.ClassName)
+
+            var schedulesQuery = _context.ClassSchedules
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Trainer)
+                .Include(s => s.Bookings)
+                .Where(s => s.ScheduleDate >= today)
+                .Where(s => s.Class.IsActive)
+                .AsQueryable();
+
+            // 搜索过滤
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Trim();
+                schedulesQuery = schedulesQuery.Where(s =>
+                    s.Class.ClassName.Contains(search) ||
+                    s.Class.Trainer.FullName.Contains(search) ||
+                    s.Venue.Contains(search)
+                );
+            }
+
+            if (!string.IsNullOrEmpty(category) && category != "All Categories")
+            {
+                schedulesQuery = schedulesQuery.Where(s => s.Class.Category == category);
+            }
+
+            var schedules = await schedulesQuery
+                .OrderBy(s => s.ScheduleDate)
+                .ThenBy(s => s.StartTime)
                 .ToListAsync();
-            return View(classes);
+
+            // 获取所有类别（用于筛选下拉菜单）
+            var categories = await _context.FitnessClasses
+                .Where(c => c.IsActive)
+                .Select(c => c.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            // 获取当前用户的预订（用于高亮显示）
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            List<int> myBookingIds = new List<int>();
+            if (!string.IsNullOrEmpty(userIdClaim))
+            {
+                var memberId = int.Parse(userIdClaim);
+                myBookingIds = await _context.Bookings
+                    .Where(b => b.MemberId == memberId && b.Status == "Confirmed")
+                    .Select(b => b.ScheduleId)
+                    .ToListAsync();
+            }
+
+            ViewBag.Categories = categories;
+            ViewBag.SearchTerm = search;
+            ViewBag.SelectedCategory = category;
+            ViewBag.MyBookingIds = myBookingIds;
+            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            return View(schedules);
         }
 
         // GET: /Booking/ClassDetails/5 - 课程详情（含可用日程）
@@ -112,6 +160,7 @@ namespace AssignmentTest1.Controllers
 
             // ✅ 检查是否有活跃的会员配套
             var activeSubscription = await _context.MemberSubscriptions
+                .Include(s => s.Plan)
                 .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
 
             if (activeSubscription == null)
@@ -141,7 +190,8 @@ namespace AssignmentTest1.Controllers
 
                 if (usedBookings >= plan.MaxBookings)
                 {
-                    TempData["Error"] = $"You have used all your {plan.MaxBookings} bookings for this membership period.";
+                    TempData["Error"] = $"You have used all {plan.MaxBookings} classes in your {plan.PlanName} plan. "
+                                      + "Your plan will refresh on " + activeSubscription.EndDate.ToString("dd/MM/yyyy") + ".";
                     return RedirectToAction("MySubscription", "Membership");
                 }
             }   
@@ -185,7 +235,14 @@ namespace AssignmentTest1.Controllers
             };
 
             _context.Bookings.Add(booking);
+
             schedule.CurrentBookings = confirmedCount + 1;
+
+            if (activeSubscription != null)
+            {
+                activeSubscription.BookingsUsed++;
+            }
+
             await _context.SaveChangesAsync();
 
             // ✅ 发送确认邮件
@@ -309,32 +366,54 @@ namespace AssignmentTest1.Controllers
 
         // GET: /Booking/SearchClasses
         [Authorize(Roles = "Member")]
-        public async Task<IActionResult> SearchClasses(string search, string category)
+        public async Task<IActionResult> SearchClasses(string search = "", string category = "")
         {
-            var query = _context.FitnessClasses
-                .Include(c => c.Trainer)
-                .Include(c => c.Schedules)
-                    .ThenInclude(s => s.Bookings)
-                .Where(c => c.IsActive)
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
+            var schedulesQuery = _context.ClassSchedules
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Trainer)
+                .Include(s => s.Bookings)
+                .Where(s => s.ScheduleDate >= today)
+                .Where(s => s.Class.IsActive)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(c =>
-                    c.ClassName.Contains(search) ||
-                    c.Trainer.FullName.Contains(search));
+                search = search.Trim();
+                schedulesQuery = schedulesQuery.Where(s =>
+                    s.Class.ClassName.Contains(search) ||
+                    s.Class.Trainer.FullName.Contains(search) ||
+                    s.Venue.Contains(search)
+                );
             }
 
             if (!string.IsNullOrEmpty(category) && category != "All Categories")
             {
-                query = query.Where(c => c.Category == category);
+                schedulesQuery = schedulesQuery.Where(s => s.Class.Category == category);
             }
 
-            var classes = await query
-                .OrderBy(c => c.ClassName)
+            var schedules = await schedulesQuery
+                .OrderBy(s => s.ScheduleDate)
+                .ThenBy(s => s.StartTime)
                 .ToListAsync();
 
-            return PartialView("_ClassList", classes);
+            // 获取用户的预订 ID
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            List<int> myBookingIds = new List<int>();
+            if (!string.IsNullOrEmpty(userIdClaim))
+            {
+                var memberId = int.Parse(userIdClaim);
+                myBookingIds = await _context.Bookings
+                    .Where(b => b.MemberId == memberId && b.Status == "Confirmed")
+                    .Select(b => b.ScheduleId)
+                    .ToListAsync();
+            }
+
+            ViewBag.MyBookingIds = myBookingIds;
+            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            return PartialView("_ScheduleCalendar", schedules);
         }
 
         // POST: /Booking/Cancel/5 - 取消预订
@@ -381,31 +460,22 @@ namespace AssignmentTest1.Controllers
             }
 
             booking.Status = "Cancelled";
-            await _context.SaveChangesAsync();
 
-            // 检查 Waitlist 是否有会员可以替补
-            var waitlist = await _context.Waitlists
-                .Where(w => w.ScheduleId == booking.ScheduleId && !w.IsPromoted)
-                .OrderBy(w => w.JoinedAt)
-                .FirstOrDefaultAsync();
-
-            if (waitlist != null)
+            // ✅ 减少日程的 CurrentBookings
+            if (booking.Schedule != null && booking.Schedule.CurrentBookings > 0)
             {
-                waitlist.IsPromoted = true;
-
-                // 创建新预订给 waitlist 会员
-                var newBooking = new Booking
-                {
-                    MemberId = waitlist.MemberId,
-                    ScheduleId = booking.ScheduleId,
-                    BookedAt = DateTime.Now,
-                    Status = "Confirmed"
-                };
-                _context.Bookings.Add(newBooking);
-                await _context.SaveChangesAsync();
-
-                TempData["Info"] = "Booking cancelled. A waitlist member has been promoted.";
+                booking.Schedule.CurrentBookings--;
             }
+
+            // ✅ 减少 BookingsUsed（如果该预订属于当前订阅周期）
+            var subscription = await _context.MemberSubscriptions
+                .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
+            if (subscription != null && subscription.BookingsUsed > 0)
+            {
+                subscription.BookingsUsed--;
+            }
+
+            await _context.SaveChangesAsync(); // 一次性保存所有变更
 
             TempData["Success"] = "Booking cancelled successfully!";
             return RedirectToAction("MyBookings");
@@ -438,17 +508,77 @@ namespace AssignmentTest1.Controllers
 
         // GET: /Booking/AdminIndex - Admin 查看所有预订
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AdminIndex()
+        public async Task<IActionResult> AdminIndex(string? search = null,
+            string? status = null,
+            string? sortBy = "BookedAt",
+            string? sortOrder = "desc",
+            int page = 1,
+            int pageSize = 10)
         {
-            var bookings = await _context.Bookings
+            var query = _context.Bookings
                 .Include(b => b.Member)
                 .Include(b => b.Schedule)
                     .ThenInclude(s => s.Class)
                         .ThenInclude(c => c.Trainer)
-                .OrderByDescending(b => b.BookedAt)
+                .AsQueryable();
+
+            // ===== 搜索 =====
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Trim();
+                query = query.Where(b =>
+                    b.Member.FullName.Contains(search) ||
+                    b.Schedule.Class.ClassName.Contains(search) ||
+                    b.Schedule.Venue.Contains(search));
+            }
+
+            // ✅ 按状态筛选（新增）
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(b => b.Status == status);
+            }
+
+            // ===== 排序 =====
+            sortBy = string.IsNullOrEmpty(sortBy) ? "BookedAt" : sortBy;
+            sortOrder = string.IsNullOrEmpty(sortOrder) ? "desc" : sortOrder;
+
+            query = sortBy.ToLower() switch
+            {
+                "id" => sortOrder == "asc" ? query.OrderBy(b => b.BookingId) : query.OrderByDescending(b => b.BookingId),
+                "member" => sortOrder == "asc" ? query.OrderBy(b => b.Member.FullName) : query.OrderByDescending(b => b.Member.FullName),
+                "class" => sortOrder == "asc" ? query.OrderBy(b => b.Schedule.Class.ClassName) : query.OrderByDescending(b => b.Schedule.Class.ClassName),
+                "date" => sortOrder == "asc" ? query.OrderBy(b => b.Schedule.ScheduleDate) : query.OrderByDescending(b => b.Schedule.ScheduleDate),
+                "status" => sortOrder == "asc" ? query.OrderBy(b => b.Status) : query.OrderByDescending(b => b.Status),
+                "bookedat" => sortOrder == "asc" ? query.OrderBy(b => b.BookedAt) : query.OrderByDescending(b => b.BookedAt),
+                _ => sortOrder == "asc" ? query.OrderBy(b => b.BookedAt) : query.OrderByDescending(b => b.BookedAt)
+            };
+
+            // ===== 分页 =====
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var bookings = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return View(bookings);
+            var model = new BookingIndexViewModel
+            {
+                Bookings = bookings,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = search,
+                SelectedStatus = status,
+                SortBy = sortBy,
+                SortOrder = sortOrder
+            };
+
+            return View(model);
         }
 
         // POST: /Booking/AdminCancel/5 - Admin 取消预订
@@ -467,30 +597,14 @@ namespace AssignmentTest1.Controllers
             }
 
             booking.Status = "Cancelled";
-            await _context.SaveChangesAsync();
 
-            // 检查 Waitlist
-            var waitlist = await _context.Waitlists
-                .Where(w => w.ScheduleId == booking.ScheduleId && !w.IsPromoted)
-                .OrderBy(w => w.JoinedAt)
-                .FirstOrDefaultAsync();
-
-            if (waitlist != null)
+            // ✅ 减少日程的 CurrentBookings
+            if (booking.Schedule != null && booking.Schedule.CurrentBookings > 0)
             {
-                waitlist.IsPromoted = true;
-
-                var newBooking = new Booking
-                {
-                    MemberId = waitlist.MemberId,
-                    ScheduleId = booking.ScheduleId,
-                    BookedAt = DateTime.Now,
-                    Status = "Confirmed"
-                };
-                _context.Bookings.Add(newBooking);
-                await _context.SaveChangesAsync();
-
-                TempData["Info"] = "A waitlist member has been promoted.";
+                booking.Schedule.CurrentBookings--;
             }
+
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Booking cancelled successfully!";
             return RedirectToAction("AdminIndex");

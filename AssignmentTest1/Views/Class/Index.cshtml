@@ -1,4 +1,4 @@
-﻿@model IEnumerable<AssignmentTest1.Models.Entities.FitnessClass>
+﻿@model AssignmentTest1.Models.ViewModels.ClassIndexViewModel
 
 @{
     ViewData["Title"] = "Manage Classes";
@@ -16,18 +16,178 @@
         flex-wrap: wrap;
         gap: 0.5rem;
     }
-    .page-header h2 { margin: 0; }
-    .badge-active { background: #EAF3DE; color: #3B6D11; }
-    .badge-inactive { background: #FCEBEB; color: #A32D2D; }
-    .badge-schedules { background: #E6F1FB; color: #185FA5; }
-    .table-action { display: flex; gap: 5px; flex-wrap: wrap; }
-    .table-action .btn { padding: 0.2rem 0.5rem; font-size: 13px; }
-    .class-card-admin {
-        border-left: 4px solid #4F6EF7;
+
+        .page-header h2 {
+            margin: 0;
+        }
+
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 1rem;
+        background: #ffffff;
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        border: 0.5px solid #E5E7EB;
     }
+
+        .filter-bar .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+            .filter-bar .search-box input {
+                width: 100%;
+                padding: 0.5rem 1rem 0.5rem 2.5rem;
+                border: 0.5px solid #E5E7EB;
+                border-radius: 8px;
+                font-size: 14px;
+                background: #F9FAFB;
+                transition: border-color 0.2s;
+            }
+
+                .filter-bar .search-box input:focus {
+                    outline: none;
+                    border-color: #4F6EF7;
+                    background: #ffffff;
+                }
+
+            .filter-bar .search-box i {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #9CA3AF;
+            }
+
+        .filter-bar .category-filter select {
+            padding: 0.5rem 1rem;
+            border: 0.5px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #F9FAFB;
+            color: #1A1A2E;
+            min-width: 140px;
+            cursor: pointer;
+        }
+
+    .badge-active {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .badge-inactive {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+
+    .badge-schedules {
+        background: #E6F1FB;
+        color: #185FA5;
+    }
+
+    .table-action {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+        .table-action .btn {
+            padding: 0.2rem 0.5rem;
+            font-size: 13px;
+        }
+
+    .sort-link {
+        color: #6B7280;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+        .sort-link:hover {
+            color: #1A1A2E;
+        }
+
+        .sort-link.active {
+            color: #4F6EF7;
+        }
+
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .pagination-info {
+        font-size: 14px;
+        color: #6B7280;
+    }
+
+        .pagination-info strong {
+            color: #1A1A2E;
+        }
+
+    .page-size-select {
+        padding: 0.3rem 0.6rem;
+        border: 0.5px solid #E5E7EB;
+        border-radius: 6px;
+        font-size: 13px;
+        background: #F9FAFB;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 4px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .pagination li {
+            display: inline;
+        }
+
+            .pagination li a, .pagination li span {
+                display: inline-block;
+                padding: 0.4rem 0.8rem;
+                border-radius: 6px;
+                font-size: 14px;
+                color: #6B7280;
+                text-decoration: none;
+                border: 0.5px solid transparent;
+                transition: all 0.2s;
+                min-width: 36px;
+                text-align: center;
+            }
+
+                .pagination li a:hover {
+                    background: #F9FAFB;
+                    border-color: #E5E7EB;
+                    color: #1A1A2E;
+                }
+
+            .pagination li.active a {
+                background: #4F6EF7;
+                color: white;
+                border-color: #4F6EF7;
+            }
+
+            .pagination li.disabled span {
+                color: #D1D5DB;
+                cursor: not-allowed;
+            }
 </style>
 
 <div class="container mt-4">
+    <!-- Page Header -->
     <div class="page-header">
         <h2><i class="fas fa-dumbbell me-2"></i>Manage Classes</h2>
         <a asp-action="Create" class="btn btn-primary">
@@ -35,6 +195,7 @@
         </a>
     </div>
 
+    <!-- Alerts -->
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show">
@@ -42,7 +203,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show">
@@ -51,24 +211,128 @@
         </div>
     }
 
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center w-100">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" name="search" placeholder="Search by class name, category, trainer..." value="@Model.SearchTerm" />
+            </div>
+            <select name="category" class="category-filter">
+                <option value="">All Categories</option>
+                @foreach (var cat in Model.Categories)
+                {
+                    <option value="@cat" selected="@(Model.SelectedCategory == cat)">@cat</option>
+                }
+            </select>
+            <!-- ✅ 新增：状态下拉菜单 -->
+            <select name="status" class="category-filter">
+                <option value="">All Status</option>
+                <option value="Active" selected="@(Model.SelectedStatus == "Active")">✅ Active</option>
+                <option value="Inactive" selected="@(Model.SelectedStatus == "Inactive")">⛔ Inactive</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="fas fa-search me-1"></i>Filter
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-undo me-1"></i>Clear
+            </a>
+            <span class="ms-auto text-muted small">
+                <strong>@Model.TotalCount</strong> classes found
+            </span>
+        </form>
+    </div>
+
+    <!-- Class Table -->
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
-                            <th>Class Name</th>
-                            <th>Category</th>
-                            <th>Trainer</th>
-                            <th>Capacity</th>
-                            <th>Schedules</th>
-                            <th>Status</th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="id" asp-route-sortOrder="@(Model.SortBy == "id" && Model.SortOrder == "asc" ? "desc" : "asc")"
+                                   asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory" asp-route-page="@Model.CurrentPage" asp-route-pageSize="@Model.PageSize"
+                                   class="sort-link @(Model.SortBy == "id" ? "active" : "")">
+                                    ID
+                                    @if (Model.SortBy == "id")
+                                    {
+                                        <i class="fas fa-chevron-@(Model.SortOrder == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="classname" asp-route-sortOrder="@(Model.SortBy == "classname" && Model.SortOrder == "asc" ? "desc" : "asc")"
+                                   asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory" asp-route-status="@Model.SelectedStatus"
+                                   asp-route-page="@Model.CurrentPage" asp-route-pageSize="@Model.PageSize"
+                                   class="sort-link @(Model.SortBy == "classname" ? "active" : "")">
+                                    Class Name
+                                    @if (Model.SortBy == "classname")
+                                    {
+                                        <i class="fas fa-chevron-@(Model.SortOrder == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="category" asp-route-sortOrder="@(Model.SortBy == "category" && Model.SortOrder == "asc" ? "desc" : "asc")"
+                                   asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory" asp-route-page="@Model.CurrentPage" asp-route-pageSize="@Model.PageSize"
+                                   class="sort-link @(Model.SortBy == "category" ? "active" : "")">
+                                    Category
+                                    @if (Model.SortBy == "category")
+                                    {
+                                        <i class="fas fa-chevron-@(Model.SortOrder == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="trainer" asp-route-sortOrder="@(Model.SortBy == "trainer" && Model.SortOrder == "asc" ? "desc" : "asc")"
+                                   asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory" asp-route-page="@Model.CurrentPage" asp-route-pageSize="@Model.PageSize"
+                                   class="sort-link @(Model.SortBy == "trainer" ? "active" : "")">
+                                    Trainer
+                                    @if (Model.SortBy == "trainer")
+                                    {
+                                        <i class="fas fa-chevron-@(Model.SortOrder == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="capacity" asp-route-sortOrder="@(Model.SortBy == "capacity" && Model.SortOrder == "asc" ? "desc" : "asc")"
+                                   asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory" asp-route-page="@Model.CurrentPage" asp-route-pageSize="@Model.PageSize"
+                                   class="sort-link @(Model.SortBy == "capacity" ? "active" : "")">
+                                    Capacity
+                                    @if (Model.SortBy == "capacity")
+                                    {
+                                        <i class="fas fa-chevron-@(Model.SortOrder == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="schedules" asp-route-sortOrder="@(Model.SortBy == "schedules" && Model.SortOrder == "asc" ? "desc" : "asc")"
+                                   asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory" asp-route-page="@Model.CurrentPage" asp-route-pageSize="@Model.PageSize"
+                                   class="sort-link @(Model.SortBy == "schedules" ? "active" : "")">
+                                    Schedules
+                                    @if (Model.SortBy == "schedules")
+                                    {
+                                        <i class="fas fa-chevron-@(Model.SortOrder == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="status" asp-route-sortOrder="@(Model.SortBy == "status" && Model.SortOrder == "asc" ? "desc" : "asc")"
+                                   asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory" asp-route-page="@Model.CurrentPage" asp-route-pageSize="@Model.PageSize"
+                                   class="sort-link @(Model.SortBy == "status" ? "active" : "")">
+                                    Status
+                                    @if (Model.SortBy == "status")
+                                    {
+                                        <i class="fas fa-chevron-@(Model.SortOrder == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.Classes)
                         {
                             <tr>
                                 <td>@item.ClassId</td>
@@ -110,15 +374,122 @@
                 </table>
             </div>
 
-            @if (!Model.Any())
+            @if (!Model.Classes.Any())
             {
                 <div class="text-center py-5">
                     <i class="fas fa-dumbbell fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No classes found. <a asp-action="Create">Create your first class</a>.</p>
+                    <p class="text-muted">No classes found.</p>
+                    <a asp-action="Create" class="btn btn-primary">Create Your First Class</a>
                 </div>
             }
         </div>
     </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Showing <strong>@((Model.CurrentPage - 1) * Model.PageSize + 1)</strong> -
+                <strong>@Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalCount)</strong>
+                of <strong>@Model.TotalCount</strong> classes
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-muted small mb-0">Rows:</label>
+                    <select class="page-size-select" onchange="window.location.href=updatePageSize(this.value)">
+                        <option value="5" selected="@(Model.PageSize == 5)">5</option>
+                        <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                        <option value="25" selected="@(Model.PageSize == 25)">25</option>
+                        <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                        <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                    </select>
+                </div>
+
+                <ul class="pagination">
+                    <li class="@(Model.CurrentPage <= 1 ? "disabled" : "")">
+                        @if (Model.CurrentPage > 1)
+                        {
+                            <a asp-action="Index" asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory"
+                               asp-route-sortBy="@Model.SortBy" asp-route-sortOrder="@Model.SortOrder"
+                               asp-route-page="@(Model.CurrentPage - 1)" asp-route-pageSize="@Model.PageSize">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span><i class="fas fa-chevron-left"></i></span>
+                        }
+                    </li>
+
+                    @{
+                        var startPage = Math.Max(1, Model.CurrentPage - 2);
+                        var endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
+
+                        if (startPage > 1)
+                        {
+                            <li>
+                                <a asp-action="Index" asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory"
+                                   asp-route-sortBy="@Model.SortBy" asp-route-sortOrder="@Model.SortOrder"
+                                   asp-route-page="1" asp-route-pageSize="@Model.PageSize">1</a>
+                            </li>
+                            if (startPage > 2)
+                            {
+                                <li class="disabled"><span>...</span></li>
+                            }
+                        }
+
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="@(i == Model.CurrentPage ? "active" : "")">
+                                <a asp-action="Index" asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory"
+                                   asp-route-sortBy="@Model.SortBy" asp-route-sortOrder="@Model.SortOrder"
+                                   asp-route-page="@i" asp-route-pageSize="@Model.PageSize">@i</a>
+                            </li>
+                        }
+
+                        if (endPage < Model.TotalPages)
+                        {
+                            if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="disabled"><span>...</span></li>
+                            }
+                            <li>
+                                <a asp-action="Index" asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory"
+                                   asp-route-sortBy="@Model.SortBy" asp-route-sortOrder="@Model.SortOrder"
+                                   asp-route-page="@Model.TotalPages" asp-route-pageSize="@Model.PageSize">@Model.TotalPages</a>
+                            </li>
+                        }
+                    }
+
+                    <li class="@(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
+                        @if (Model.CurrentPage < Model.TotalPages)
+                        {
+                            <a asp-action="Index" asp-route-search="@Model.SearchTerm" asp-route-category="@Model.SelectedCategory"
+                               asp-route-sortBy="@Model.SortBy" asp-route-sortOrder="@Model.SortOrder"
+                               asp-route-page="@(Model.CurrentPage + 1)" asp-route-pageSize="@Model.PageSize">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span><i class="fas fa-chevron-right"></i></span>
+                        }
+                    </li>
+                </ul>
+            </div>
+        </div>
+    }
+
+    <script>
+            function updatePageSize(size) {
+                var url = new URL(window.location.href);
+                url.searchParams.set('pageSize', size);
+                url.searchParams.set('page', 1);
+                return url.toString();
+            }
+    </script>
 </div>
 
 <!-- Delete Modal -->
@@ -131,7 +502,7 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete class <strong id="deleteClassName"></strong>?</p>
-                <p class="text-muted small">This action cannot be undone. All schedules for this class will also be affected.</p>
+                <p class="text-muted small">This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -147,9 +518,8 @@
 
 @section Scripts {
     <script>
-        // Populate delete modal
         var deleteModal = document.getElementById('deleteModal');
-        deleteModal.addEventListener('show.bs.modal', function (event) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
             var button = event.relatedTarget;
             var id = button.getAttribute('data-id');
             var name = button.getAttribute('data-name');

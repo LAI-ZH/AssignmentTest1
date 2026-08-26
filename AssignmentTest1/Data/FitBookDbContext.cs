@@ -114,12 +114,6 @@ namespace AssignmentTest1.Data
                 .HasForeignKey<Payment>(p => p.SubscriptionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ✅ MemberSubscription → Payment (One-to-One)
-            modelBuilder.Entity<MemberSubscription>()
-                .HasOne(s => s.Payment)
-                .WithOne(p => p.Subscription)
-                .HasForeignKey<MemberSubscription>(s => s.PaymentId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
 
     }

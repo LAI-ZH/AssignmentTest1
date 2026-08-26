@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+﻿﻿@using System.Security.Claims
 @model IEnumerable<AssignmentTest1.Models.Entities.ClassSchedule>
 
 @{
@@ -18,7 +18,8 @@
         new TimeOnly(19, 0, 0), new TimeOnly(20, 0, 0), new TimeOnly(21, 0, 0)
     };
 
-    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    var myBookingIds = ViewBag.MyBookingIds as List<int> ?? new List<int>();
+    var role = ViewBag.Role as string ?? User.FindFirst(ClaimTypes.Role)?.Value ?? "Member";
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -161,6 +162,20 @@
             margin-top: 1px;
         }
 
+        /* ✅ 已预订高亮样式 */
+        .class-block.booked {
+            background: #d4edda !important;
+            border-left-color: #28a745 !important;
+            border-left-width: 5px !important;
+            box-shadow: 0 0 0 1px #28a745;
+        }
+
+            .class-block.booked .class-name::after {
+                content: " ✅";
+                font-size: 12px;
+            }
+
+        /* Category colors */
         .class-block.yoga {
             border-left-color: #8B5CF6;
             background: #F5F0FF;
@@ -257,12 +272,41 @@
                 background: #4F6EF7;
             }
 
-    @@media (max-width: 768px) {
-        .page-header {
-            flex-direction: column;
-            align-items: stretch;
+        .legend .status-available {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            background: #EAF3DE;
+            color: #3B6D11;
         }
 
+        .legend .status-full {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            background: #FCEBEB;
+            color: #A32D2D;
+        }
+
+        .legend .status-booked {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #28a745;
+        }
+
+    .schedule-empty {
+        padding: 2rem;
+        text-align: center;
+        color: #6B7280;
+    }
+
+    @@media (max-width: 768px) {
         .filter-bar {
             flex-direction: column;
             align-items: stretch;
@@ -278,172 +322,174 @@
     }
 </style>
 
-<div class="schedule-wrapper">
-    <table class="schedule-grid">
-        <thead>
-            <tr>
-                <th>Day / Time</th>
-                @foreach (var slot in timeSlots)
-                {
-                    <th>@slot.Hour - @slot.AddHours(1).Hour</th>
-                }
-            </tr>
-        </thead>
-        <tbody>
-            @for (int day = 0; day < 7; day++)
-            {
-                var targetDate = monday.AddDays(day);
-
+@if (!schedules.Any())
+{
+    <div class="schedule-empty">
+        <i class="fas fa-calendar-times" style="font-size: 32px; color: #D1D5DB; display: block; margin-bottom: 10px;"></i>
+        <p>No upcoming classes available.</p>
+        <small class="text-muted">Check back later for new schedules.</small>
+    </div>
+}
+else
+{
+    <div class="schedule-wrapper">
+        <table class="schedule-grid">
+            <thead>
                 <tr>
-                    <td>
-                        @days[day]
-                        <span class="date-label">@targetDate.ToString("dd/MM/yyyy")</span>
-                        @if (targetDate == today)
-                        {
-                            <span class="today-badge">Today</span>
-                        }
-                    </td>
-
-                    @{
-                        var daySchedules = schedules
-                            .Where(s => s.ScheduleDate == targetDate)
-                            .OrderBy(s => s.StartTime)
-                            .ToList();
-
-                        var usedColumns = new HashSet<int>();
-
-                        for (int col = 0; col < timeSlots.Length; col++)
-                        {
-                            if (usedColumns.Contains(col))
-                            {
-                                continue;
-                            }
-
-                            var currentSlot = timeSlots[col];
-
-                            var schedule = daySchedules
-                                .FirstOrDefault(s => s.StartTime <= currentSlot && s.EndTime > currentSlot);
-
-                            if (schedule != null)
-                            {
-                                var startCol = timeSlots.ToList().FindIndex(t => t >= schedule.StartTime);
-                                if (startCol == -1) startCol = col;
-
-                                var endCol = timeSlots.ToList().FindLastIndex(t => t < schedule.EndTime);
-                                if (endCol == -1) endCol = startCol;
-
-                                var colSpan = endCol - startCol + 1;
-                                if (colSpan < 1) colSpan = 1;
-
-                                for (int i = startCol; i <= endCol; i++)
-                                {
-                                    usedColumns.Add(i);
-                                }
-
-                                var confirmedCount = schedule.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0;
-                                var maxCapacity = schedule.Class?.MaxCapacity ?? 0;
-                                var isFull = confirmedCount >= maxCapacity && maxCapacity > 0;
-                                var isBooked = false;
-
-                                @if (role == "Member")
-                                {
-                                    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                                    if (!string.IsNullOrEmpty(userId))
-                                    {
-                                        isBooked = schedule.Bookings?.Any(b => b.MemberId == int.Parse(userId) && b.Status != "Cancelled") ?? false;
-                                    }
-                                }
-
-                                var categoryClass = "default";
-                                if (schedule.Class?.Category != null)
-                                {
-                                    categoryClass = schedule.Class.Category.ToLower() switch
-                                    {
-                                        "yoga" => "yoga",
-                                        "hiit" => "hiit",
-                                        "dance" => "dance",
-                                        "strength" => "strength",
-                                        "core" => "core",
-                                        "boxing" => "boxing",
-                                        _ => "default"
-                                    };
-                                }
-
-                                // ✅ 点击跳转到 Schedule Details
-                                var detailUrl = Url.Action("Details", "Schedule", new { id = schedule.ScheduleId });
-
-                                <td colspan="@colSpan" style="padding:0.15rem;">
-                                    <div class="class-block @categoryClass" onclick="location.href='@detailUrl'">
-                                        <div class="class-name">@schedule.Class?.ClassName</div>
-                                        <div class="class-detail">
-                                            <i class="fas fa-user-tie"></i> @(schedule.Class?.Trainer?.FullName ?? "TBD")
-                                        </div>
-                                        <div class="class-detail">
-                                            <i class="fas fa-clock"></i> @schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")
-                                        </div>
-                                        <div class="class-detail">
-                                            <i class="fas fa-door-open"></i> @schedule.Venue
-                                        </div>
-                                        <div class="class-status @(isFull ? "full" : "available")">
-                                            @if (isFull)
-                                            {
-                                                <span>Full</span>
-                                            }
-                                            else
-                                            {
-
-                                                <span>@confirmedCount / @maxCapacity</span>
-                                            }
-                                        </div>
-
-                                        @if (role == "Member")
-                                        {
-                                            if (isBooked)
-                                            {
-                                                <span style="font-size:9px; color:#198754; font-weight:500; margin-top:2px;">✅ Booked</span>
-                                            }
-                                            else
-                                            {
-                                                <!-- ✅ 点击卡片查看详情并预订 -->
-                                                <div style="font-size:8px; color:#4F6EF7; font-weight:500; margin-top:2px;">
-                                                    <i class="fas fa-chevron-right"></i> Click to view &amp; book
-                                                </div>
-                                            }
-                                        }
-
-                                        @if (role == "Trainer")
-                                        {
-                                            <div style="font-size:9px; color:#6B7280; margin-top:2px;">
-                                                <i class="fas fa-users"></i> @confirmedCount booked
-                                            </div>
-                                        }
-                                    </div>
-                                </td>
-                            }
-                            else
-                            {
-                                <td><div class="empty-cell">—</div></td>
-                            }
-                        }
+                    <th>Day / Time</th>
+                    @foreach (var slot in timeSlots)
+                    {
+                        <th>@slot.Hour - @slot.AddHours(1).Hour</th>
                     }
                 </tr>
-            }
-        </tbody>
-    </table>
-</div>
+            </thead>
+            <tbody>
+                @for (int day = 0; day < 7; day++)
+                {
+                    var targetDate = monday.AddDays(day);
 
-<!-- Legend -->
-<div class="legend">
-    <span class="legend-label">Categories:</span>
-    <span class="badge yoga">Yoga</span>
-    <span class="badge hiit">HIIT</span>
-    <span class="badge dance">Dance</span>
-    <span class="badge strength">Strength</span>
-    <span class="badge core">Core</span>
-    <span class="badge boxing">Boxing</span>
-    <span class="badge default">Default</span>
-    <span style="margin-left:auto; font-size:11px; color:#9CA3AF;">
-        <span class="class-status available" style="display:inline; padding:1px 6px;">Available</span>
-        <span class="class-status full" style="display:inline; padding:1px 6px;">Full</span>
-    </span>
-</div>
+                    <tr>
+                        <td>
+                            @days[day]
+                            <span class="date-label">@targetDate.ToString("dd/MM/yyyy")</span>
+                            @if (targetDate == today)
+                            {
+                                <span class="today-badge">Today</span>
+                            }
+                        </td>
+
+                        @{
+                            var daySchedules = schedules
+                                .Where(s => s.ScheduleDate == targetDate)
+                                .OrderBy(s => s.StartTime)
+                                .ToList();
+
+                            var usedColumns = new HashSet<int>();
+
+                            for (int col = 0; col < timeSlots.Length; col++)
+                            {
+                                if (usedColumns.Contains(col))
+                                {
+                                    continue;
+                                }
+
+                                var currentSlot = timeSlots[col];
+
+                                var schedule = daySchedules
+                                    .FirstOrDefault(s => s.StartTime <= currentSlot && s.EndTime > currentSlot);
+
+                                if (schedule != null)
+                                {
+                                    var startCol = timeSlots.ToList().FindIndex(t => t >= schedule.StartTime);
+                                    if (startCol == -1) startCol = col;
+
+                                    var endCol = timeSlots.ToList().FindLastIndex(t => t < schedule.EndTime);
+                                    if (endCol == -1) endCol = startCol;
+
+                                    var colSpan = endCol - startCol + 1;
+                                    if (colSpan < 1) colSpan = 1;
+
+                                    for (int i = startCol; i <= endCol; i++)
+                                    {
+                                        usedColumns.Add(i);
+                                    }
+
+                                    var confirmedCount = schedule.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0;
+                                    var maxCapacity = schedule.Class?.MaxCapacity ?? 0;
+                                    var isFull = confirmedCount >= maxCapacity && maxCapacity > 0;
+
+                                    // ✅ 使用 ViewBag 传入的 MyBookingIds 判断是否已预订
+                                    var isBooked = myBookingIds.Contains(schedule.ScheduleId);
+
+                                    var categoryClass = "default";
+                                    if (schedule.Class?.Category != null)
+                                    {
+                                        categoryClass = schedule.Class.Category.ToLower() switch
+                                        {
+                                            "yoga" => "yoga",
+                                            "hiit" => "hiit",
+                                            "dance" => "dance",
+                                            "strength" => "strength",
+                                            "core" => "core",
+                                            "boxing" => "boxing",
+                                            _ => "default"
+                                        };
+                                    }
+
+                                    var detailUrl = Url.Action("Details", "Schedule", new { id = schedule.ScheduleId });
+
+                                    <td colspan="@colSpan" style="padding:0.15rem;">
+                                        <div class="class-block @categoryClass @(isBooked ? "booked" : "")" onclick="location.href='@detailUrl'">
+                                            <div class="class-name">@schedule.Class?.ClassName</div>
+                                            <div class="class-detail">
+                                                <i class="fas fa-user-tie"></i> @(schedule.Class?.Trainer?.FullName ?? "TBD")
+                                            </div>
+                                            <div class="class-detail">
+                                                <i class="fas fa-clock"></i> @schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")
+                                            </div>
+                                            <div class="class-detail">
+                                                <i class="fas fa-door-open"></i> @schedule.Venue
+                                            </div>
+                                            <div class="class-status @(isFull ? "full" : "available")">
+                                                @if (isFull)
+                                                {
+                                                    <span>Full</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@confirmedCount / @maxCapacity</span>
+                                                }
+                                            </div>
+
+                                            @if (role == "Member")
+                                            {
+                                                if (isBooked)
+                                                {
+                                                    <span style="font-size:9px; color:#198754; font-weight:500; margin-top:2px;">✅ Booked</span>
+                                                }
+                                                else
+                                                {
+                                                    <div style="font-size:8px; color:#4F6EF7; font-weight:500; margin-top:2px;">
+                                                        <i class="fas fa-chevron-right"></i> Click to view &amp; book
+                                                    </div>
+                                                }
+                                            }
+
+                                            @if (role == "Trainer")
+                                            {
+                                                <div style="font-size:9px; color:#6B7280; margin-top:2px;">
+                                                    <i class="fas fa-users"></i> @confirmedCount booked
+                                                </div>
+                                            }
+                                        </div>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td><div class="empty-cell">—</div></td>
+                                }
+                            }
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <span class="legend-label">Categories:</span>
+        <span class="badge yoga">Yoga</span>
+        <span class="badge hiit">HIIT</span>
+        <span class="badge dance">Dance</span>
+        <span class="badge strength">Strength</span>
+        <span class="badge core">Core</span>
+        <span class="badge boxing">Boxing</span>
+        <span class="badge default">Default</span>
+        <span style="margin-left:auto; font-size:11px; color:#9CA3AF;">
+            <span class="status-available">Available</span>
+            <span class="status-full">Full</span>
+            <span class="status-booked">✅ Booked</span>
+        </span>
+    </div>
+}

@@ -1,7 +1,7 @@
-﻿@model IEnumerable<AssignmentTest1.Models.Entities.FitnessClass>
+﻿@model IEnumerable<AssignmentTest1.Models.Entities.ClassSchedule>
 
 @{
-    ViewData["Title"] = "Browse Classes";
+    ViewData["Title"] = "Class Schedule";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,11 +17,10 @@
         gap: 0.5rem;
     }
 
-        .page-header h2 {
-            margin: 0;
-        }
+    .page-header h2 {
+        margin: 0;
+    }
 
-    /* ===== Filter Bar ===== */
     .filter-bar {
         display: flex;
         gap: 12px;
@@ -32,329 +31,287 @@
         padding: 0.75rem 1.25rem;
         border-radius: 12px;
         border: 0.5px solid #E5E7EB;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
 
-        .filter-bar .search-box {
-            flex: 1;
-            min-width: 200px;
-            position: relative;
-        }
+    .filter-bar .search-box {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+    }
 
-            .filter-bar .search-box input {
-                width: 100%;
-                padding: 0.5rem 1rem 0.5rem 2.5rem;
-                border: 0.5px solid #E5E7EB;
-                border-radius: 8px;
-                font-size: 14px;
-                background: #F9FAFB;
-                transition: border-color 0.2s;
-            }
+    .filter-bar .search-box input {
+        width: 100%;
+        padding: 0.5rem 1rem 0.5rem 2.5rem;
+        border: 0.5px solid #E5E7EB;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #F9FAFB;
+        transition: border-color 0.2s, background 0.2s;
+    }
 
-                .filter-bar .search-box input:focus {
-                    outline: none;
-                    border-color: #4F6EF7;
-                    background: #ffffff;
-                }
+    .filter-bar .search-box input:focus {
+        outline: none;
+        border-color: #4F6EF7;
+        background: #ffffff;
+    }
 
-            .filter-bar .search-box i {
-                position: absolute;
-                left: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: #9CA3AF;
-            }
+    .filter-bar .search-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+    }
 
-        .filter-bar .category-filter select {
-            padding: 0.5rem 1rem;
-            border: 0.5px solid #E5E7EB;
-            border-radius: 8px;
-            font-size: 14px;
-            background: #F9FAFB;
-            color: #1A1A2E;
-            min-width: 140px;
-            cursor: pointer;
-        }
+    .filter-bar .category-filter select {
+        padding: 0.5rem 1rem;
+        border: 0.5px solid #E5E7EB;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #F9FAFB;
+        color: #1A1A2E;
+        min-width: 140px;
+        cursor: pointer;
+    }
 
-            .filter-bar .category-filter select:focus {
-                outline: none;
-                border-color: #4F6EF7;
-            }
+    .filter-bar .category-filter select:focus {
+        outline: none;
+        border-color: #4F6EF7;
+    }
 
-        .filter-bar .result-count {
-            font-size: 13px;
-            color: #6B7280;
-            white-space: nowrap;
-        }
+    .filter-bar .result-count {
+        font-size: 13px;
+        color: #6B7280;
+        white-space: nowrap;
+    }
 
-    /* ===== Loading Spinner ===== */
+    .filter-bar .btn-reset {
+        padding: 0.5rem 1.25rem;
+        border: 0.5px solid #E5E7EB;
+        border-radius: 8px;
+        background: #F9FAFB;
+        color: #6B7280;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+    }
+
+    .filter-bar .btn-reset:hover {
+        background: #EF4444;
+        color: white;
+        border-color: #EF4444;
+    }
+
+    .btn-primary-custom {
+        padding: 0.5rem 1.25rem;
+        border: none;
+        border-radius: 8px;
+        background: #4F6EF7;
+        color: white;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 14px;
+    }
+
+    .btn-primary-custom:hover {
+        background: #3B5DE7;
+    }
+
     .loading-spinner {
         display: none;
         text-align: center;
         padding: 2rem;
     }
 
-        .loading-spinner .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #E5E7EB;
-            border-top-color: #4F6EF7;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto;
-        }
-
-    @@keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
+    .loading-spinner .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #E5E7EB;
+        border-top-color: #4F6EF7;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto;
     }
 
-    /* ===== Class Cards ===== */
-    .class-card {
-        transition: transform 0.2s, box-shadow 0.2s;
-        border-left: 4px solid #4F6EF7;
-        cursor: pointer;
-        height: 100%;
+
+    .schedule-wrapper {
+        overflow-x: auto;
+        background: #ffffff;
+        border-radius: 12px;
+        border: 0.5px solid #E5E7EB;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
 
-        .class-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-        }
-
-        .class-card .card-title {
-            color: #1A1A2E;
-        }
-
-        .class-card .class-meta {
-            font-size: 13px;
-            color: #6B7280;
-        }
-
-            .class-card .class-meta i {
-                width: 18px;
-                color: #4F6EF7;
-            }
-
-    .badge-available {
-        background: #EAF3DE;
-        color: #3B6D11;
-    }
-
-    .badge-full {
-        background: #FCEBEB;
-        color: #A32D2D;
-    }
-
-    .badge-waitlist {
-        background: #FFF3CD;
-        color: #856404;
-    }
-
-    /* ===== No Results ===== */
     .no-results {
-        display: none;
         text-align: center;
         padding: 3rem 1rem;
     }
 
-        .no-results i {
-            font-size: 48px;
-            color: #D1D5DB;
-            margin-bottom: 1rem;
-        }
+    .no-results i {
+        font-size: 48px;
+        color: #D1D5DB;
+        margin-bottom: 1rem;
+    }
 
-        .no-results h5 {
-            color: #6B7280;
-            margin-bottom: 0.5rem;
-        }
+    .no-results h5 {
+        color: #6B7280;
+        margin-bottom: 0.5rem;
+    }
 
-        .no-results p {
-            color: #9CA3AF;
-        }
+    .no-results p {
+        color: #9CA3AF;
+    }
 </style>
 
 <div class="container mt-4">
     <!-- Page Header -->
     <div class="page-header">
-        <h2><i class="fas fa-search me-2"></i>Browse Classes</h2>
-        <span class="badge bg-info p-2" id="totalCount">@Model.Count() classes</span>
+        <h2><i class="fas fa-calendar-alt me-2"></i>Class Schedule</h2>
+        <span class="badge bg-info p-2" id="totalCount">@Model.Count() sessions</span>
     </div>
 
-    <!-- ✅ AJAX Filter Bar -->
+    <!-- Filter Bar -->
     <div class="filter-bar">
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search by class name or trainer..." />
+            <input type="text" id="searchInput" placeholder="Search by class, trainer, or venue..." value="@ViewBag.SearchTerm" />
         </div>
         <div class="category-filter">
             <select id="categoryFilter">
                 <option value="">All Categories</option>
-                <option value="Yoga">Yoga</option>
-                <option value="HIIT">HIIT</option>
-                <option value="Dance">Dance</option>
-                <option value="Strength">Strength</option>
-                <option value="Core">Core</option>
-                <option value="Boxing">Boxing</option>
+                @if (ViewBag.Categories != null)
+                {
+                    foreach (var cat in ViewBag.Categories)
+                    {
+                        <option value="@cat" selected="@(ViewBag.SelectedCategory == cat ? "selected" : null)">
+                            @cat
+                        </option>
+                    }
+                }
             </select>
         </div>
-        <span class="result-count" id="resultCount">Showing <span id="visibleCount">@Model.Count()</span> classes</span>
+        <button id="searchBtn" class="btn-primary-custom">
+            <i class="fas fa-search"></i> Search
+        </button>
+        <button id="resetBtn" class="btn-reset">
+            <i class="fas fa-undo"></i> Reset
+        </button>
+        <span class="result-count" id="resultCount">Showing <span id="visibleCount">@Model.Count()</span> sessions</span>
     </div>
 
     <!-- Loading Spinner -->
     <div class="loading-spinner" id="loadingSpinner">
         <div class="spinner"></div>
-        <p class="text-muted mt-2">Loading...</p>
+        <p class="text-muted mt-2">Loading schedule...</p>
     </div>
 
-    <!-- Class Cards -->
-    <div class="row" id="classContainer">
-        @foreach (var item in Model)
-        {
-            var today = DateOnly.FromDateTime(DateTime.Now);
-            var upcomingSessions = item.Schedules?.Where(s => s.ScheduleDate >= today).ToList();
-            var hasUpcoming = upcomingSessions?.Any() ?? false;
-            var totalBookings = upcomingSessions?.Sum(s => s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) ?? 0;
-            var hasAvailableSlot = upcomingSessions?.Any(s => (s.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0) < item.MaxCapacity) ?? false;
-
-            <div class="col-md-4 mb-4 class-item"
-                 data-name="@item.ClassName.ToLower()"
-                 data-trainer="@item.Trainer?.FullName?.ToLower()"
-                 data-category="@item.Category">
-                <div class="card class-card h-100 shadow-sm" onclick="location.href='@Url.Action("ClassDetails", new { id = item.ClassId })'">
-                    <div class="card-body">
-                        <h5 class="card-title">@item.ClassName</h5>
-                        <p class="class-meta"><i class="fas fa-tag"></i>@item.Category</p>
-                        <p class="class-meta"><i class="fas fa-user-tie"></i>@item.Trainer?.FullName</p>
-                        <p class="class-meta"><i class="fas fa-users"></i>@totalBookings / @item.MaxCapacity</p>
-                        <p class="class-meta"><i class="fas fa-calendar-alt"></i>@(upcomingSessions?.Count ?? 0) upcoming sessions</p>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        @if (hasUpcoming && hasAvailableSlot)
-                        {
-                            <span class="badge badge-available">Available</span>
-                        }
-                        else if (hasUpcoming && !hasAvailableSlot)
-                        {
-                            <span class="badge badge-full">Full</span>
-                        }
-                        else
-                        {
-                            <span class="badge badge-waitlist">No upcoming sessions</span>
-                        }
-                        <span class="float-end text-muted small">Click to view details</span>
-                    </div>
-                </div>
-            </div>
+    <!-- Schedule Calendar Container -->
+    <div id="scheduleContainer">
+        @{
+            var schedules = Model as IEnumerable<AssignmentTest1.Models.Entities.ClassSchedule> ?? new List<AssignmentTest1.Models.Entities.ClassSchedule>();
+            await Html.RenderPartialAsync("_ScheduleCalendar", schedules);
         }
-    </div>
-
-    <!-- No Results -->
-    <div class="no-results" id="noResults">
-        <i class="fas fa-search"></i>
-        <h5>No classes found</h5>
-        <p>Try adjusting your search or filter criteria</p>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // ============================================================
-        // AJAX Search & Filter (without page reload)
-        // ============================================================
+        $(document).ready(function () {
+            // ============================================================
+            // DOM Elements
+            // ============================================================
+            var $searchInput = $('#searchInput');
+            var $categoryFilter = $('#categoryFilter');
+            var $searchBtn = $('#searchBtn');
+            var $resetBtn = $('#resetBtn');
+            var $scheduleContainer = $('#scheduleContainer');
+            var $loadingSpinner = $('#loadingSpinner');
+            var $visibleCount = $('#visibleCount');
+            var $resultCount = $('#resultCount');
 
-        const searchInput = document.getElementById('searchInput');
-        const categoryFilter = document.getElementById('categoryFilter');
-        const classItems = document.querySelectorAll('.class-item');
-        const visibleCount = document.getElementById('visibleCount');
-        const totalCount = document.getElementById('totalCount');
-        const noResults = document.getElementById('noResults');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const classContainer = document.getElementById('classContainer');
+            // ============================================================
+            // Load Schedules (AJAX)
+            // ============================================================
+            function loadSchedules() {
+                var search = $searchInput.val();
+                var category = $categoryFilter.val();
 
-        let searchTimeout = null;
+                // Show loading
+                $loadingSpinner.show();
+                $scheduleContainer.hide();
 
-        // ============================================================
-        // Filter Function
-        // ============================================================
+                $.ajax({
+                    url: '@Url.Action("SearchClasses", "Booking")',
+                    type: 'GET',
+                    data: {
+                        search: search,
+                        category: category
+                    },
+                    success: function (data) {
+                        $scheduleContainer.html(data);
+                        $scheduleContainer.show();
+                        $loadingSpinner.hide();
 
-        function filterClasses() {
-            const search = searchInput.value.toLowerCase().trim();
-            const category = categoryFilter.value;
-
-            // Show loading
-            loadingSpinner.style.display = 'block';
-            classContainer.style.opacity = '0.3';
-
-            // Simulate slight delay for better UX (optional)
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                let visible = 0;
-
-                classItems.forEach(item => {
-                    const name = item.dataset.name || '';
-                    const trainer = item.dataset.trainer || '';
-                    const itemCategory = item.dataset.category || '';
-
-                    const matchesSearch = name.includes(search) || trainer.includes(search);
-                    const matchesCategory = !category || itemCategory === category;
-
-                    if (matchesSearch && matchesCategory) {
-                        item.style.display = 'block';
-                        visible++;
-                    } else {
-                        item.style.display = 'none';
+                        // Update session count
+                        var count = $(data).filter('.schedule-grid').length > 0 ?
+                            $(data).find('tbody tr').length :
+                            0;
+                        // 或者从返回的 HTML 中提取，或者从 ViewBag 获取
+                        // 简单起见，我们数一下表格行数
+                        var rowCount = $(data).find('tbody tr').length;
+                        $visibleCount.text(rowCount);
+                    },
+                    error: function () {
+                        $loadingSpinner.hide();
+                        $scheduleContainer.show();
+                        alert('Error loading schedule. Please try again.');
                     }
                 });
-
-                // Update count
-                visibleCount.textContent = visible;
-
-                // Show/hide no results
-                if (visible === 0) {
-                    noResults.style.display = 'block';
-                } else {
-                    noResults.style.display = 'none';
-                }
-
-                // Hide loading
-                loadingSpinner.style.display = 'none';
-                classContainer.style.opacity = '1';
-
-            }, 300);
-        }
-
-        // ============================================================
-        // Event Listeners
-        // ============================================================
-
-        // Search input - real-time
-        searchInput.addEventListener('input', filterClasses);
-
-        // Category filter
-        categoryFilter.addEventListener('change', filterClasses);
-
-        // ============================================================
-        // Keyboard shortcut: ESC to clear search
-        // ============================================================
-
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                searchInput.value = '';
-                filterClasses();
-                searchInput.blur();
             }
-        });
 
-        // ============================================================
-        // Initial filter (in case of pre-filled values)
-        // ============================================================
+            // ============================================================
+            // Event Listeners
+            // ============================================================
 
-        // Run initial filter after page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if there are any pre-filled values
-            if (searchInput.value || categoryFilter.value) {
-                filterClasses();
+            // Search button click
+            $searchBtn.on('click', loadSchedules);
+
+            // Enter key in search input
+            $searchInput.on('keypress', function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    loadSchedules();
+                }
+            });
+
+            // Category filter change
+            $categoryFilter.on('change', loadSchedules);
+
+            // Reset button
+            $resetBtn.on('click', function () {
+                $searchInput.val('');
+                $categoryFilter.val('');
+                loadSchedules();
+            });
+
+            // ============================================================
+            // Keyboard shortcut: ESC to clear search
+            // ============================================================
+            $searchInput.on('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    $searchInput.val('');
+                    loadSchedules();
+                    $searchInput.blur();
+                }
+            });
+
+            // ============================================================
+            // Initial load if search term exists
+            // ============================================================
+            if ($searchInput.val() || $categoryFilter.val()) {
+                loadSchedules();
             }
         });
     </script>

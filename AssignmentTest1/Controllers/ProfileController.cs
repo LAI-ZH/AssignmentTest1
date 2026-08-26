@@ -127,8 +127,10 @@ namespace AssignmentTest1.Controllers
             user.Gender = model.Gender;
 
             // ✅ 处理头像上传
-            if (model.ProfilePhoto != null)
+            if (model.ProfilePhotoFile != null && model.ProfilePhotoFile.Length > 0)
             {
+                Console.WriteLine($"File received: {model.ProfilePhotoFile.FileName}, Size: {model.ProfilePhotoFile.Length}");
+
                 // 删除旧头像
                 if (!string.IsNullOrEmpty(user.ProfilePhoto))
                 {
@@ -137,9 +139,16 @@ namespace AssignmentTest1.Controllers
 
                 // 上传新头像
                 var newPhotoPath = await _fileUploadService.UploadFileAsync(model.ProfilePhotoFile);
+                Console.WriteLine($"Upload result: {newPhotoPath ?? "NULL"}");
+
                 if (newPhotoPath != null)
                 {
                     user.ProfilePhoto = newPhotoPath;
+                }
+                else
+                {
+                    TempData["Error"] = "Invalid file format. Please upload JPG, PNG, or GIF.";
+                    return View(model);
                 }
             }
 

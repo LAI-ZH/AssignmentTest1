@@ -8,21 +8,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
-    .status-active {
-        background: #EAF3DE;
-        color: #3B6D11;
-    }
-
-    .status-expired {
-        background: #FCEBEB;
-        color: #A32D2D;
-    }
-
-    .status-cancelled {
-        background: #FFF3CD;
-        color: #856404;
-    }
-
     .stat-box {
         text-align: center;
         padding: 1.25rem;
@@ -32,7 +17,7 @@
     }
 
         .stat-box .stat-number {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 600;
             color: #1A1A2E;
         }
@@ -41,6 +26,33 @@
             font-size: 13px;
             color: #6B7280;
         }
+
+    .progress {
+        height: 8px;
+        border-radius: 99px;
+        background: #E5E7EB;
+        margin-top: 0.5rem;
+    }
+
+    .progress-bar {
+        border-radius: 99px;
+        transition: width 0.5s ease;
+    }
+
+    .badge-active {
+        background: #EAF3DE;
+        color: #3B6D11;
+    }
+
+    .badge-expired {
+        background: #FCEBEB;
+        color: #A32D2D;
+    }
+
+    .badge-cancelled {
+        background: #FFF3CD;
+        color: #856404;
+    }
 </style>
 
 <div class="container mt-4">
@@ -70,7 +82,7 @@
                     <!-- Plan Info -->
                     <div class="text-center mb-4">
                         <h3>@Model.Plan?.PlanName</h3>
-                        <span class="badge status-active">Active</span>
+                        <span class="badge badge-active">Active</span>
                     </div>
 
                     <!-- Stats -->
@@ -89,7 +101,16 @@
                         </div>
                         <div class="col-md-4">
                             <div class="stat-box">
-                                <div class="stat-number">@ViewBag.BookingsRemaining</div>
+                                <div class="stat-number">
+                                    @if (Model.Plan?.MaxBookings == 0)
+                                    {
+                                        <span>∞</span>
+                                    }
+                                    else
+                                    {
+                                        @ViewBag.BookingsRemaining
+                                    }
+                                </div>
                                 <div class="stat-label">
                                     @if (Model.Plan?.MaxBookings == 0)
                                     {
@@ -104,6 +125,49 @@
                         </div>
                     </div>
 
+                    <!-- ✅ 进度条（如果有限制次数） -->
+                    @if (Model.Plan?.MaxBookings > 0)
+                    {
+                        var used = Model.Plan.MaxBookings - ViewBag.BookingsRemaining;
+                        var percent = (double)used / Model.Plan.MaxBookings * 100;
+                        var barColor = percent >= 80 ? "#DC3545" : percent >= 60 ? "#FFC107" : "#22C55E";
+
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted small">Used: @used / @Model.Plan.MaxBookings classes</span>
+                                <span class="text-muted small">@(percent.ToString("F0"))%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width: @percent%; background: @barColor;"
+                                     aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            @if (percent >= 80)
+                            {
+                                <p class="text-danger small mt-1">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    You are close to your monthly limit!
+                                </p>
+                            }
+                            @if (percent >= 100)
+                            {
+                                <p class="text-danger small mt-1">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    You have reached your monthly limit.
+                                    <a asp-action="MemberPlans" class="text-primary">Upgrade your plan</a>
+                                </p>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mt-3 alert alert-info">
+                            <i class="fas fa-infinity me-2"></i>
+                            You have <strong>unlimited</strong> classes with your @Model.Plan?.PlanName plan!
+                        </div>
+                    }
+
                     <!-- Details -->
                     <div class="mt-4">
                         <div class="row">
@@ -116,7 +180,7 @@
                         </div>
                         @if (Model.Plan?.MaxBookings > 0)
                         {
-                            <p><strong>Classes Used:</strong> @Model.BookingsUsed / @Model.Plan.MaxBookings</p>
+                            <p><strong>Classes Used:</strong> @(Model.Plan.MaxBookings - ViewBag.BookingsRemaining) / @Model.Plan.MaxBookings</p>
                         }
                         @if (Model.Plan?.PTSessions > 0)
                         {
@@ -138,6 +202,7 @@
                     }
 
                     <!-- Actions -->
+                    <hr />
                     <div class="d-grid gap-2">
                         <a asp-controller="Booking" asp-action="ClassCatalog" class="btn btn-success">
                             <i class="fas fa-search me-2"></i>Browse Classes
@@ -151,44 +216,6 @@
                         <a asp-action="MemberPlans" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Back to Plans
                         </a>
-                    </div>
-
-                    <div class="mt-4">
-                        <h5><i class="fas fa-history me-2"></i>Recent Bookings</h5>
-                        @if (ViewBag.RecentBookings != null && ViewBag.RecentBookings.Count > 0)
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Class</th>
-                                            <th>Date</th>
-                                            <th>Status</th>
-                                            <th>Receipt</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var booking in ViewBag.RecentBookings)
-                                        {
-                                            <tr>
-                                                <td>@booking.Schedule?.Class?.ClassName</td>
-                                                <td>@booking.Schedule?.ScheduleDate.ToString("dd/MM/yyyy")</td>
-                                                <td>@booking.Status</td>
-                                                <td>
-                                                    <a asp-action="DownloadBookingReceipt" asp-route-id="@booking.BookingId" class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-file-pdf"></i> PDF
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                        else
-                        {
-                            <p class="text-muted small">No bookings yet.</p>
-                        }
                     </div>
                 </div>
             </div>

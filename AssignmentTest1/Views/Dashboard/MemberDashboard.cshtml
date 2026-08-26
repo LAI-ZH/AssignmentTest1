@@ -1,6 +1,17 @@
 ﻿@{
     ViewData["Title"] = "Member Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var myBookings = ViewBag.MyBookings as IEnumerable<AssignmentTest1.Models.Entities.Booking> ?? new List<AssignmentTest1.Models.Entities.Booking>();
+    var upcomingBookings = ViewBag.UpcomingBookings as IEnumerable<AssignmentTest1.Models.Entities.Booking> ?? new List<AssignmentTest1.Models.Entities.Booking>();
+    var totalBookings = myBookings.Count();
+
+    // 获取未来的预订（用于显示日历部分）
+    var futureBookings = myBookings
+        .Where(b => b.Status == "Confirmed" && b.Schedule != null && b.Schedule.ScheduleDate >= DateOnly.FromDateTime(DateTime.Now))
+        .OrderBy(b => b.Schedule.ScheduleDate)
+        .ThenBy(b => b.Schedule.StartTime)
+        .ToList();
 }
 
 <link rel="stylesheet" href="~/css/MemberDashboard.css" />
@@ -24,13 +35,23 @@
         </div>
     </div>
 
-    <!-- ✅ Schedule Calendar -->
+    <!-- ✅ My Booked Classes Schedule -->
     <div class="mt-4">
-        <h5><i class="fas fa-calendar-alt me-2"></i>Class Schedule</h5>
-        <p class="text-muted small">Click on any class to view details or book</p>
+        <h5><i class="fas fa-calendar-check me-2"></i>My Booked Classes</h5>
+        <p class="text-muted small">Your upcoming classes in calendar view</p>
         @{
-            var schedules = ViewBag.AllSchedules as IEnumerable<AssignmentTest1.Models.Entities.ClassSchedule> ?? new List<AssignmentTest1.Models.Entities.ClassSchedule>();
-            await Html.RenderPartialAsync("_ScheduleCalendar", schedules);
+            var allSchedules = ViewBag.AllSchedules as IEnumerable<AssignmentTest1.Models.Entities.ClassSchedule> ?? new List<AssignmentTest1.Models.Entities.ClassSchedule>();
+
+            var bookedScheduleIds = myBookings
+                .Where(b => b.Status == "Confirmed")
+                .Select(b => b.ScheduleId)
+                .ToList();
+            // 3️⃣ 过滤出已预订的日程
+            var mySchedules = allSchedules
+                .Where(s => bookedScheduleIds.Contains(s.ScheduleId))
+                .ToList();
+
+            await Html.RenderPartialAsync("_ScheduleCalendar", mySchedules);
         }
     </div>
 

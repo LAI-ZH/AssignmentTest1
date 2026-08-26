@@ -1,22 +1,25 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using AssignmentTest1.Data;
+﻿using AssignmentTest1.Data;
 using AssignmentTest1.Models.Entities;
 using AssignmentTest1.Models.ViewModels;
-using System.Security.Claims;
-using QRCoder;
 using AssignmentTest1.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using QRCoder;
+using System.Numerics;
+using System.Security.Claims;
 
 namespace AssignmentTest1.Controllers
 {
     public class MembershipController : Controller
     {
         private readonly FitBookDbContext _context;
+        private readonly ILogger<MembershipController> _logger;
 
-        public MembershipController(FitBookDbContext context)
+        public MembershipController(FitBookDbContext context, ILogger<MembershipController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // ============================================================
@@ -385,11 +388,26 @@ namespace AssignmentTest1.Controllers
                 ViewBag.ExpiredSubscription = expiredSubscription;
                 return View("NoSubscription");
             }
-
             var daysRemaining = (subscription.EndDate - DateTime.Now).Days;
-            var bookingsRemaining = subscription.Plan.MaxBookings == 0
-                ? 999
-                : subscription.Plan.MaxBookings - subscription.BookingsUsed;
+
+            // ✅ 计算剩余次数
+            int bookingsRemaining = 0;
+            if (subscription.Plan.MaxBookings > 0)
+            {
+                // 当前周期内已使用的预订数
+                var usedBookings = await _context.Bookings
+                    .Where(b => b.MemberId == memberId && (b.Status == "Confirmed" || b.Status == "Attended"))
+                    .Where(b => b.Schedule != null && b.Schedule.ScheduleDate >= DateOnly.FromDateTime(subscription.StartDate)
+                             && b.Schedule.ScheduleDate <= DateOnly.FromDateTime(subscription.EndDate))
+                    .CountAsync();
+
+                bookingsRemaining = subscription.Plan.MaxBookings - usedBookings;
+                if (bookingsRemaining < 0) bookingsRemaining = 0;
+            }
+            else
+            {
+                bookingsRemaining = 999; // 无限
+            }
 
             ViewBag.DaysRemaining = daysRemaining > 0 ? daysRemaining : 0;
             ViewBag.BookingsRemaining = bookingsRemaining > 0 ? bookingsRemaining : 0;
@@ -611,132 +629,154 @@ namespace AssignmentTest1.Controllers
         {
             try
             {
-                // ✅ 检查 model 是否为 null
+                // 1. 基础校验
                 if (model == null)
                 {
-                    Console.WriteLine("Model is null");
+                    _logger.LogWarning("ConfirmQRPayment called with null model");
                     return Json(new { success = false, message = "Invalid request data." });
                 }
-
-                Console.WriteLine("=== ConfirmQRPayment Started ===");
-                Console.WriteLine($"TransactionId: {model?.TransactionId}");
-                Console.WriteLine($"PlanName: {model?.PlanName}");
-                Console.WriteLine($"Price: {model?.Price}");
 
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                 {
-                    Console.WriteLine("User not logged in");
+                    _logger.LogWarning("ConfirmQRPayment called with unauthenticated user");
                     return Json(new { success = false, message = "User not logged in." });
                 }
                 var memberId = int.Parse(userIdClaim);
-                Console.WriteLine($"Member ID: {memberId}");
+                _logger.LogInformation($"ConfirmQRPayment started for MemberId: {memberId}, TransactionId: {model.TransactionId}");
 
-                // ✅ 检查是否已有活跃订阅
+                // 2. 检查是否已有活跃订阅
                 var existingSubscription = await _context.MemberSubscriptions
                     .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
-
                 if (existingSubscription != null)
                 {
-                    Console.WriteLine("User already has active subscription");
+                    _logger.LogWarning($"Member {memberId} already has active subscription");
                     return Json(new { success = false, message = "You already have an active subscription." });
                 }
 
-                // ✅ 如果 TransactionId 为空，生成一个
+                // 3. 获取配套信息（从 model 或数据库）
+                MembershipPlan? plan = null;
+
+                // 如果 TransactionId 为空，生成一个
                 if (string.IsNullOrEmpty(model?.TransactionId))
                 {
-                    model.TransactionId = $"QR-{DateTime.Now:yyyyMMddHHmmss}";
+                    model.TransactionId = $"QR-{DateTime.Now:yyyyMMddHHmmss}-{Guid.NewGuid():N}".Substring(0, 20);
                 }
 
-                // ✅ 查找支付记录
+                // 尝试根据 TransactionId 查找已有的 Payment（如果已经存在则复用）
                 var payment = await _context.Payments
                     .FirstOrDefaultAsync(p => p.TransactionId == model.TransactionId);
 
-                MembershipPlan? planData = null;
-
-                if (payment == null)
+                if (payment != null)
                 {
-                    Console.WriteLine("Payment not found, creating new...");
-
-                    // ✅ 用 PlanName 查找配套
-                    if (string.IsNullOrEmpty(model?.PlanName))
+                    // 如果已存在支付记录，获取其 Plan
+                    if (payment.PlanId.HasValue)
                     {
-                        return Json(new { success = false, message = "Plan name is required." });
+                        plan = await _context.MembershipPlans.FindAsync(payment.PlanId.Value);
                     }
-
-                    planData = await _context.MembershipPlans
-                        .FirstOrDefaultAsync(p => p.PlanName == model.PlanName);
-
-                    if (planData == null)
+                    if (plan == null)
                     {
-                        Console.WriteLine($"Plan not found: {model.PlanName}");
-                        return Json(new { success = false, message = "Plan not found." });
+                        _logger.LogError($"Plan not found for existing payment {payment.PaymentId}");
+                        return Json(new { success = false, message = "Plan information missing." });
                     }
-
-                    Console.WriteLine($"Plan found: {planData.PlanName}, Price: {planData.Price}");
-
-                    // 创建支付记录
-                    payment = new Payment
-                    {
-                        UserId = memberId,
-                        PlanId = planData.PlanId,
-                        Amount = planData.Price,
-                        PaymentMethod = "QR",
-                        Status = "Pending",
-                        TransactionId = model.TransactionId,
-                        PaymentDate = DateTime.Now
-                    };
-
-                    _context.Payments.Add(payment);
-                    await _context.SaveChangesAsync();
-                    Console.WriteLine($"Payment created: {payment.PaymentId}");
                 }
                 else
                 {
-                    Console.WriteLine($"Payment found: {payment.PaymentId}, Status: {payment.Status}");
-
-                    // 从支付记录获取配套
-                    if (payment.PlanId.HasValue)
+                    // 新支付：必须提供 PlanName
+                    if (string.IsNullOrEmpty(model?.PlanName))
                     {
-                        planData = await _context.MembershipPlans.FindAsync(payment.PlanId.Value);
+                        _logger.LogWarning("ConfirmQRPayment called without PlanName and no existing payment");
+                        return Json(new { success = false, message = "Plan name is required." });
                     }
 
-                    if (planData == null)
+                    plan = await _context.MembershipPlans
+                        .FirstOrDefaultAsync(p => p.PlanName == model.PlanName && p.IsActive);
+
+                    if (plan == null)
                     {
+                        _logger.LogWarning($"Plan not found: {model.PlanName}");
                         return Json(new { success = false, message = "Plan not found." });
                     }
                 }
 
-                // ✅ 创建订阅
-                var subscription = new MemberSubscription
+                // 4. 使用事务确保数据一致性
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    UserId = memberId,
-                    PlanId = planData.PlanId,
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now.AddDays(planData.DurationDays),
-                    Status = "Active",
-                    BookingsUsed = 0,
-                    PT_Used = 0,
-                    AutoRenew = false
-                };
+                    // 5. 创建 Subscription（必须先创建，以获取 SubscriptionId）
+                    var subscription = new MemberSubscription
+                    {
+                        UserId = memberId,
+                        PlanId = plan.PlanId,
+                        StartDate = DateTime.Now,
+                        EndDate = DateTime.Now.AddDays(plan.DurationDays),
+                        Status = "Active",
+                        BookingsUsed = 0,
+                        PT_Used = 0,
+                        AutoRenew = false
+                    };
+                    _context.MemberSubscriptions.Add(subscription);
+                    await _context.SaveChangesAsync(); // 生成 SubscriptionId
 
-                _context.MemberSubscriptions.Add(subscription);
-                await _context.SaveChangesAsync();
-                Console.WriteLine($"Subscription created: {subscription.SubscriptionId}");
+                    _logger.LogInformation($"Subscription created: {subscription.SubscriptionId}");
 
-                // ✅ 更新支付
-                payment.SubscriptionId = subscription.SubscriptionId;
-                payment.Status = "Successful";
-                await _context.SaveChangesAsync();
-                Console.WriteLine("Payment updated to Successful");
+                    // 6. 创建或更新 Payment
+                    if (payment == null)
+                    {
+                        payment = new Payment
+                        {
+                            UserId = memberId,
+                            SubscriptionId = subscription.SubscriptionId, // ✅ 现在有值了
+                            PlanId = plan.PlanId,
+                            Amount = plan.Price,
+                            PaymentMethod = "QR",
+                            Status = "Successful", // QR 支付假设已成功
+                            TransactionId = model.TransactionId,
+                            PaymentDate = DateTime.Now
+                        };
+                        _context.Payments.Add(payment);
+                    }
+                    else
+                    {
+                        // 更新已有支付记录（理论上不应发生，但以防万一）
+                        payment.SubscriptionId = subscription.SubscriptionId;
+                        payment.Status = "Successful";
+                        payment.PaymentDate = DateTime.Now;
+                        _context.Payments.Update(payment);
+                    }
 
-                return Json(new { success = true, paymentId = payment.PaymentId });
+                    await _context.SaveChangesAsync();
+
+                    // 7. 更新 Subscription 的 PaymentId（双向关联）
+                    subscription.PaymentId = payment.PaymentId;
+                    _context.MemberSubscriptions.Update(subscription);
+                    await _context.SaveChangesAsync();
+
+                    // 8. 提交事务
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation($"QR payment confirmed successfully: PaymentId={payment.PaymentId}, SubscriptionId={subscription.SubscriptionId}");
+
+                    return Json(new
+                    {
+                        success = true,
+                        paymentId = payment.PaymentId,
+                        subscriptionId = subscription.SubscriptionId,
+                        transactionId = payment.TransactionId
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // 回滚事务
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, $"Error confirming QR payment for MemberId: {memberId}");
+                    return Json(new { success = false, message = "An error occurred while processing payment. Please try again." });
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                return Json(new { success = false, message = ex.Message });
+                _logger.LogError(ex, "Unexpected error in ConfirmQRPayment");
+                return Json(new { success = false, message = "An unexpected error occurred." });
             }
         }
 

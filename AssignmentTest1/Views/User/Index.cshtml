@@ -223,6 +223,11 @@
                 <option value="Trainer" selected="@(Model.SelectedRole == "Trainer")">Trainer</option>
                 <option value="Member" selected="@(Model.SelectedRole == "Member")">Member</option>
             </select>
+            <select name="status" class="category-filter">
+                <option value="">All Status</option>
+                <option value="Active" selected="@(ViewBag.SelectedStatus == "Active")">✅ Active</option>
+                <option value="Locked" selected="@(ViewBag.SelectedStatus == "Locked")">🔒 Locked</option>
+            </select>
             <button type="submit" class="btn btn-primary btn-sm">
                 <i class="fas fa-search me-1"></i>Filter
             </button>

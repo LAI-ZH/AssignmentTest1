@@ -86,16 +86,31 @@ namespace AssignmentTest1.Controllers
                 return View(model);
             }
 
+            // ✅ 检查账户是否被锁定（永久锁定或临时锁定）
             if (user.IsLocked)
             {
-                ModelState.AddModelError("", $"Account is locked. Please contact administrator.");
-                return View(model);
+                if (user.LockUntil.HasValue && user.LockUntil.Value > DateTime.Now)
+                {
+                    ModelState.AddModelError("", $"Account is temporarily locked. Try again after {user.LockUntil.Value:HH:mm}");
+                    return View(model);
+                }
+                else if (!user.LockUntil.HasValue)
+                {
+                    ModelState.AddModelError("", "Account is permanently locked. Please contact administrator.");
+                    return View(model);
+                }
             }
 
-            if (user.LockUntil.HasValue && user.LockUntil.Value > DateTime.Now)
+            // ✅ 检查是否需要验证码（失败次数 >= 3 时）
+            // 注意：这里使用 user.FailedLoginCount（数据库中的失败次数）
+            if (user.FailedLoginCount >= 3)
             {
-                ModelState.AddModelError("", $"Account is temporarily locked. Try again after {user.LockUntil.Value:HH:mm}");
-                return View(model);
+                if (!VerifyCaptcha(model.CaptchaCode))
+                {
+                    ModelState.AddModelError("", "Invalid captcha code.");
+                    model.FailedAttempts = user.FailedLoginCount;  // 传递给 View
+                    return View(model);
+                }
             }
 
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
@@ -106,10 +121,10 @@ namespace AssignmentTest1.Controllers
 
                 if (user.FailedLoginCount >= 3)
                 {
-                    user.IsLocked = true;
-                    user.LockUntil = DateTime.Now.AddMinutes(15);
+                    // ✅ 只增加失败次数，不锁定
                     await _context.SaveChangesAsync();
-                    ModelState.AddModelError("", "Account locked for 15 minutes due to multiple failed attempts");
+                    ModelState.AddModelError("", "Invalid email or password. Please enter the captcha.");
+                    model.FailedAttempts = user.FailedLoginCount;
                     return View(model);
                 }
 
@@ -129,10 +144,11 @@ namespace AssignmentTest1.Controllers
                 }
             }
 
-
-            user.LastLoginAt = DateTime.Now;
+            // ✅ 密码正确，重置失败次数
             user.FailedLoginCount = 0;
+            user.IsLocked = false;
             user.LockUntil = null;
+            user.LastLoginAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
             var claims = new List<Claim>

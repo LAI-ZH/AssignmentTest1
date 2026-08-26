@@ -34,5 +34,8 @@ namespace AssignmentTest1.Models.Entities
         // Navigation
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<Waitlist>? Waitlists { get; set; }
+
+        [Timestamp]
+        public byte[]? RowVersion { get; set; }
     }
 }
