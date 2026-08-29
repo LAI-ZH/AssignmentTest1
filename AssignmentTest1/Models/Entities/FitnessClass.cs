@@ -29,7 +29,6 @@ namespace AssignmentTest1.Models.Entities
 
         public bool IsActive { get; set; } = true;
 
-        // Navigation
-        public ICollection<ClassSchedule>? Schedules { get; set; }
+        public ICollection<ClassSchedule> Schedules { get; set; } = new List<ClassSchedule>();
     }
 }

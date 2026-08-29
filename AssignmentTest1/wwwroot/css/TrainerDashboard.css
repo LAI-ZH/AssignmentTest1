@@ -1,0 +1,362 @@
+﻿﻿ /* ===== Trainer Dashboard Styles ===== */
+/* 基于 MemberDashboard 风格，适配 Trainer 角色 */
+/* ----- 全局容器 ----- */
+.db-root {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 2rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* ----- 页面头部 ----- */
+.db-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+    .db-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0b1a33;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .db-header h1 i {
+            color: #7c3aed; /* 紫色调，区别于会员的蓝色 */
+            background: #ede9fe;
+            padding: 10px 12px;
+            border-radius: 14px;
+            font-size: 1.8rem;
+        }
+
+.db-welcome {
+    font-size: 1rem;
+    color: #6f85a0;
+    background: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #eef2f7;
+}
+
+    .db-welcome strong {
+        color: #0b1a33;
+    }
+
+/* ----- 统计卡片区域 ----- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid #eef2f7;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+    }
+
+    .stat-card .stat-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        color: #6f85a0;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-card .stat-num {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0b1a33;
+        line-height: 1.2;
+    }
+
+    /* 不同卡片颜色主题 */
+    .stat-card.success::after {
+        background: #10b981;
+    }
+
+    .stat-card.success .stat-icon {
+        color: #10b981;
+    }
+
+    .stat-card.warning::after {
+        background: #f59e0b;
+    }
+
+    .stat-card.warning .stat-icon {
+        color: #f59e0b;
+    }
+
+    .stat-card.info::after {
+        background: #3b82f6;
+    }
+
+    .stat-card.info .stat-icon {
+        color: #3b82f6;
+    }
+
+    .stat-card.primary::after {
+        background: #8b5cf6;
+    }
+
+    .stat-card.primary .stat-icon {
+        color: #8b5cf6;
+    }
+
+    /* Hover 效果 */
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        border-color: #dbe3ef;
+    }
+
+/* ----- 通用区块标题 ----- */
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #0b1a33;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .section-title i {
+        color: #7c3aed;
+    }
+
+/* ----- 课程网格 (My Classes) ----- */
+.class-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.class-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid #eef2f7;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+    .class-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        border-color: #c4b5fd; /* 紫色边框 */
+    }
+
+    .class-card h5 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0b1a33;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .class-card .class-meta {
+        font-size: 0.9rem;
+        color: #6f85a0;
+        margin: 0.3rem 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .class-card .class-meta i {
+            width: 18px;
+            color: #7c3aed;
+        }
+
+        .class-card .class-meta .badge-status {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+.badge-status.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-status.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ----- 空状态 ----- */
+.db-empty {
+    color: #6f85a0;
+    padding: 2rem;
+    text-align: center;
+    background: white;
+    border-radius: 16px;
+    border: 2px dashed #eef2f7;
+    width: 100%;
+}
+
+/* ----- 日程表容器（_ScheduleCalendar 包裹） ----- */
+.schedule-wrapper {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #eef2f7;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .db-root {
+        padding: 1rem;
+    }
+
+    .db-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+        .db-header h1 {
+            font-size: 1.6rem;
+        }
+
+    .db-welcome {
+        align-self: flex-start;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+        .stat-card .stat-num {
+            font-size: 1.5rem;
+        }
+
+    .class-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.75rem;
+    }
+
+    .stat-card .stat-num {
+        font-size: 1.3rem;
+    }
+}
+
+/* 暗色模式 (可选) */
+@media (prefers-color-scheme: light) {
+    .db-root {
+        background: #0f172a;
+    }
+
+    .db-header h1 {
+        color: #f1f5f9;
+    }
+
+        .db-header h1 i {
+            background: #1e1b4b;
+            color: #a78bfa;
+        }
+
+    .db-welcome {
+        background: #1e293b;
+        border-color: #334155;
+        color: #94a3b8;
+    }
+
+        .db-welcome strong {
+            color: #f1f5f9;
+        }
+
+    .stat-card {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+        .stat-card .stat-label {
+            color: #94a3b8;
+        }
+
+        .stat-card .stat-num {
+            color: #f1f5f9;
+        }
+
+    .section-title {
+        color: #f1f5f9;
+    }
+
+    .class-card {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+        .class-card:hover {
+            border-color: #7c3aed;
+        }
+
+        .class-card h5 {
+            color: #f1f5f9;
+        }
+
+        .class-card .class-meta {
+            color: #94a3b8;
+        }
+
+    .db-empty {
+        background: #1e293b;
+        border-color: #334155;
+        color: #94a3b8;
+    }
+
+    .schedule-wrapper {
+        background: #1e293b;
+        border-color: #334155;
+    }
+}

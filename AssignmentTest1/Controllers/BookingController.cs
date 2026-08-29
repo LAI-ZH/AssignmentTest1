@@ -33,7 +33,7 @@ namespace AssignmentTest1.Controllers
                     .ThenInclude(c => c.Trainer)
                 .Include(s => s.Bookings)
                 .Where(s => s.ScheduleDate >= today)
-                .Where(s => s.Class.IsActive)
+                .Where(s => s.Class != null && s.Class.IsActive)
                 .AsQueryable();
 
             // 搜索过滤
@@ -41,15 +41,15 @@ namespace AssignmentTest1.Controllers
             {
                 search = search.Trim();
                 schedulesQuery = schedulesQuery.Where(s =>
-                    s.Class.ClassName.Contains(search) ||
-                    s.Class.Trainer.FullName.Contains(search) ||
+                    (s.Class != null && s.Class.ClassName.Contains(search)) ||
+                    (s.Class != null && s.Class.Trainer != null && s.Class.Trainer.FullName.Contains(search)) ||
                     s.Venue.Contains(search)
                 );
             }
 
             if (!string.IsNullOrEmpty(category) && category != "All Categories")
             {
-                schedulesQuery = schedulesQuery.Where(s => s.Class.Category == category);
+                schedulesQuery = schedulesQuery.Where(s => s.Class != null && s.Class.Category == category);
             }
 
             var schedules = await schedulesQuery
@@ -207,7 +207,7 @@ namespace AssignmentTest1.Controllers
             }
 
             // 检查是否满额
-            var confirmedCount = schedule.Bookings?.Count(b => b.Status == "Confirmed" || b.Status == "Attended") ?? 0;
+            var confirmedCount = schedule.Bookings.Count(b => b.Status == "Confirmed" || b.Status == "Attended");
             if (confirmedCount >= schedule.Class.MaxCapacity)
             {
                 // 加入 Waitlist
@@ -375,22 +375,22 @@ namespace AssignmentTest1.Controllers
                     .ThenInclude(c => c.Trainer)
                 .Include(s => s.Bookings)
                 .Where(s => s.ScheduleDate >= today)
-                .Where(s => s.Class.IsActive)
+                .Where(s => s.Class != null && s.Class.IsActive)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.Trim();
                 schedulesQuery = schedulesQuery.Where(s =>
-                    s.Class.ClassName.Contains(search) ||
-                    s.Class.Trainer.FullName.Contains(search) ||
+                    s.Class != null && s.Class.ClassName.Contains(search) ||
+                    s.Class != null && s.Class.Trainer != null && s.Class.Trainer.FullName.Contains(search) ||
                     s.Venue.Contains(search)
                 );
             }
 
             if (!string.IsNullOrEmpty(category) && category != "All Categories")
             {
-                schedulesQuery = schedulesQuery.Where(s => s.Class.Category == category);
+                schedulesQuery = schedulesQuery.Where(s => s.Class != null && s.Class.Category == category);
             }
 
             var schedules = await schedulesQuery

@@ -31,9 +31,31 @@ namespace AssignmentTest1.Controllers
         public async Task<IActionResult> Plans()
         {
             var plans = await _context.MembershipPlans
-                .Include(p => p.Subscriptions.Where(s => s.Status == "Active"))
+                .Include(p => p.Subscriptions)
+                    .ThenInclude(s => s.User)
                 .OrderBy(p => p.DisplayOrder)
                 .ToListAsync();
+
+            // ✅ 为每个计划统计活跃数和不同用户数
+            var stats = new Dictionary<int, (int Active, int UniqueUsers, int Total)>();
+            foreach (var plan in plans)
+            {
+                var subscriptions = plan.Subscriptions ?? new List<MemberSubscription>();
+
+                var active = subscriptions.Count(s => s.Status == "Active");
+
+                // ✅ 关键：使用 Select(s => s.UserId).Distinct().Count() 去重
+                var uniqueUsers = subscriptions
+                    .Select(s => s.UserId)
+                    .Distinct()
+                    .Count();
+
+                var total = subscriptions.Count;
+
+                stats[plan.PlanId] = (active, uniqueUsers, total);
+            }
+            ViewBag.PlanStats = stats;
+
             return View(plans);
         }
 

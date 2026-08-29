@@ -39,6 +39,54 @@ namespace AssignmentTest1.Controllers
                 return NotFound();
             }
 
+            // ✅ 获取会员订阅状态（仅对 Member 角色）
+            string membershipStatus = "No active subscription";
+            string? planName = null;
+            DateTime? expiryDate = null;
+
+            if (user.Role == "Member")
+            {
+                var subscription = await _context.MemberSubscriptions
+                    .Include(s => s.Plan)
+                    .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "Active");
+
+                if (subscription != null)
+                {
+                    // 检查是否过期
+                    if (subscription.EndDate < DateTime.Now)
+                    {
+                        membershipStatus = "Expired";
+                        planName = subscription.Plan?.PlanName;
+                        expiryDate = subscription.EndDate;
+                    }
+                    else
+                    {
+                        membershipStatus = "Active";
+                        planName = subscription.Plan?.PlanName;
+                        expiryDate = subscription.EndDate;
+                    }
+                }
+                else
+                {
+                    // 检查是否有已过期或已取消的订阅
+                    var expiredSubscription = await _context.MemberSubscriptions
+                        .Include(s => s.Plan)
+                        .FirstOrDefaultAsync(s => s.UserId == userId && (s.Status == "Expired" || s.Status == "Cancelled"));
+
+                    if (expiredSubscription != null)
+                    {
+                        membershipStatus = expiredSubscription.Status;
+                        planName = expiredSubscription.Plan?.PlanName;
+                        expiryDate = expiredSubscription.EndDate;
+                    }
+                }
+            }
+
+            // 把数据传给 View
+            ViewBag.MembershipStatus = membershipStatus;
+            ViewBag.PlanName = planName;
+            ViewBag.ExpiryDate = expiryDate;
+
             var model = new UserProfileViewModel
             {
                 UserId = user.UserId,

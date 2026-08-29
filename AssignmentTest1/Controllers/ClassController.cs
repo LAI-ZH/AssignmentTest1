@@ -261,5 +261,97 @@ namespace AssignmentTest1.Controllers
                 })
                 .ToListAsync();
         }
+
+        // GET: /Class/Calendar
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Calendar(string? search = null, string? category = null)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
+            // 获取所有日程（包含课程、教练、预订信息）
+            var schedulesQuery = _context.ClassSchedules
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Trainer)
+                .Include(s => s.Bookings)
+                .Where(s => s.ScheduleDate >= today)
+                .Where(s => s.Class.IsActive)
+                .AsQueryable();
+
+            // 搜索过滤（按课程名、教练、场地）
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Trim();
+                schedulesQuery = schedulesQuery.Where(s =>
+                    s.Class.ClassName.Contains(search) ||
+                    s.Class.Trainer.FullName.Contains(search) ||
+                    s.Venue.Contains(search)
+                );
+            }
+
+            // 分类筛选
+            if (!string.IsNullOrEmpty(category) && category != "All Categories")
+            {
+                schedulesQuery = schedulesQuery.Where(s => s.Class.Category == category);
+            }
+
+            var schedules = await schedulesQuery
+                .OrderBy(s => s.ScheduleDate)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync();
+
+            // 获取所有类别（用于筛选下拉菜单）
+            var categories = await _context.FitnessClasses
+                .Where(c => c.IsActive)
+                .Select(c => c.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            ViewBag.Categories = categories;
+            ViewBag.SearchTerm = search;
+            ViewBag.SelectedCategory = category;
+            ViewBag.Role = "Admin";
+
+            return View(schedules);
+        }
+
+        // GET: /Class/SearchCalendar
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SearchCalendar(string search = "", string category = "")
+        {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
+            var schedulesQuery = _context.ClassSchedules
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Trainer)
+                .Include(s => s.Bookings)
+                .Where(s => s.ScheduleDate >= today)
+                .Where(s => s.Class.IsActive)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Trim();
+                schedulesQuery = schedulesQuery.Where(s =>
+                    s.Class.ClassName.Contains(search) ||
+                    s.Class.Trainer.FullName.Contains(search) ||
+                    s.Venue.Contains(search)
+                );
+            }
+
+            if (!string.IsNullOrEmpty(category) && category != "All Categories")
+            {
+                schedulesQuery = schedulesQuery.Where(s => s.Class.Category == category);
+            }
+
+            var schedules = await schedulesQuery
+                .OrderBy(s => s.ScheduleDate)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync();
+
+            ViewBag.Role = "Admin";
+
+            return PartialView("_ScheduleCalendar", schedules);
+        }
     }
 }
