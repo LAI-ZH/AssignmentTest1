@@ -205,67 +205,69 @@
                     <span class="detail-label">Last Login</span>
                     <span class="detail-value">@(Model.LastLoginAt?.ToString("dd/MM/yyyy HH:mm") ?? "Never")</span>
                 </div>
-                <!-- 在个人信息卡片下方添加 -->
-                <div class="profile-section">
-                    <h5><i class="fas fa-crown me-2"></i>Membership Status</h5>
-                    <div class="membership-card">
-                        @if (ViewBag.MembershipStatus == "Active")
-                        {
-                            <div class="status-badge active">
-                                <i class="fas fa-check-circle"></i> Active
-                            </div>
-                            <div class="plan-info">
-                                <p><strong>Plan:</strong> @ViewBag.PlanName</p>
-                                <p><strong>Expiry Date:</strong> @(ViewBag.ExpiryDate?.ToString("dd/MM/yyyy") ?? "N/A")</p>
-                                @{
-                                    var daysLeft = ViewBag.ExpiryDate != null ? ((DateTime)ViewBag.ExpiryDate - DateTime.Now).Days : 0;
-                                }
-                                @if (daysLeft > 0)
-                                {
-                                    <p><strong>Days Remaining:</strong> @daysLeft days</p>
-                                }
-                            </div>
-                        }
-                        else if (ViewBag.MembershipStatus == "Expired")
-                        {
-                            <div class="status-badge expired">
-                                <i class="fas fa-exclamation-triangle"></i> Expired
-                            </div>
-                            <div class="plan-info">
-                                <p><strong>Plan:</strong> @ViewBag.PlanName</p>
-                                <p><strong>Expired on:</strong> @(ViewBag.ExpiryDate?.ToString("dd/MM/yyyy") ?? "N/A")</p>
-                                <a href="/Membership/MemberPlans" class="btn btn-primary btn-sm mt-2">
-                                    <i class="fas fa-sync me-1"></i> Renew Now
-                                </a>
-                            </div>
-                        }
-                        else if (ViewBag.MembershipStatus == "Cancelled")
-                        {
-                            <div class="status-badge cancelled">
-                                <i class="fas fa-times-circle"></i> Cancelled
-                            </div>
-                            <div class="plan-info">
-                                <p><strong>Plan:</strong> @ViewBag.PlanName</p>
-                                <a href="/Membership/MemberPlans" class="btn btn-primary btn-sm mt-2">
-                                    <i class="fas fa-sync me-1"></i> Subscribe Again
-                                </a>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="status-badge no-plan">
-                                <i class="fas fa-info-circle"></i> No Subscription
-                            </div>
-                            <div class="plan-info">
-                                <p>You don't have an active membership plan.</p>
-                                <a href="/Membership/MemberPlans" class="btn btn-primary btn-sm mt-2">
-                                    <i class="fas fa-crown me-1"></i> View Plans
-                                </a>
-                            </div>
-                        }
+                @if (User.IsInRole("Member"))
+                {
+                    <!-- 在个人信息卡片下方添加 -->
+                    <div class="profile-section">
+                        <h5><i class="fas fa-crown me-2"></i>Membership Status</h5>
+                        <div class="membership-card">
+                            @if (ViewBag.MembershipStatus == "Active")
+                            {
+                                <div class="status-badge active">
+                                    <i class="fas fa-check-circle"></i> Active
+                                </div>
+                                <div class="plan-info">
+                                    <p><strong>Plan:</strong> @ViewBag.PlanName</p>
+                                    <p><strong>Expiry Date:</strong> @(ViewBag.ExpiryDate?.ToString("dd/MM/yyyy") ?? "N/A")</p>
+                                    @{
+                                        var daysLeft = ViewBag.ExpiryDate != null ? ((DateTime)ViewBag.ExpiryDate - DateTime.Now).Days : 0;
+                                    }
+                                    @if (daysLeft > 0)
+                                    {
+                                        <p><strong>Days Remaining:</strong> @daysLeft days</p>
+                                    }
+                                </div>
+                            }
+                            else if (ViewBag.MembershipStatus == "Expired")
+                            {
+                                <div class="status-badge expired">
+                                    <i class="fas fa-exclamation-triangle"></i> Expired
+                                </div>
+                                <div class="plan-info">
+                                    <p><strong>Plan:</strong> @ViewBag.PlanName</p>
+                                    <p><strong>Expired on:</strong> @(ViewBag.ExpiryDate?.ToString("dd/MM/yyyy") ?? "N/A")</p>
+                                    <a href="/Membership/MemberPlans" class="btn btn-primary btn-sm mt-2">
+                                        <i class="fas fa-sync me-1"></i> Renew Now
+                                    </a>
+                                </div>
+                            }
+                            else if (ViewBag.MembershipStatus == "Cancelled")
+                            {
+                                <div class="status-badge cancelled">
+                                    <i class="fas fa-times-circle"></i> Cancelled
+                                </div>
+                                <div class="plan-info">
+                                    <p><strong>Plan:</strong> @ViewBag.PlanName</p>
+                                    <a href="/Membership/MemberPlans" class="btn btn-primary btn-sm mt-2">
+                                        <i class="fas fa-sync me-1"></i> Subscribe Again
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="status-badge no-plan">
+                                    <i class="fas fa-info-circle"></i> No Subscription
+                                </div>
+                                <div class="plan-info">
+                                    <p>You don't have an active membership plan.</p>
+                                    <a href="/Membership/MemberPlans" class="btn btn-primary btn-sm mt-2">
+                                        <i class="fas fa-crown me-1"></i> View Plans
+                                    </a>
+                                </div>
+                            }
+                        </div>
                     </div>
-                </div>
-
+                }
                 <hr />
 
                 <!-- Actions -->

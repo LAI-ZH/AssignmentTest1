@@ -30,6 +30,7 @@ namespace AssignmentTest1.Data
         public DbSet<Waitlist> Waitlists { get; set; }
         public DbSet<TrainerPhoto> TrainerPhotos { get; set; }
 
+        public DbSet<PrivateSession> PrivateSessions { get; set; }
         public DbSet<ClassScheduleTemplate> ClassScheduleTemplates { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -112,6 +113,36 @@ namespace AssignmentTest1.Data
                 .HasOne(p => p.Subscription)
                 .WithOne(s => s.Payment)
                 .HasForeignKey<Payment>(p => p.SubscriptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MembershipPlan>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);  // 18位总长度，2位小数
+
+            // Payment 的 Amount
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
+
+            // PrivateSession → Member (User)
+            modelBuilder.Entity<PrivateSession>()
+                .HasOne(ps => ps.Member)
+                .WithMany(u => u.PrivateSessions)
+                .HasForeignKey(ps => ps.MemberId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PrivateSession → Trainer (User)
+            modelBuilder.Entity<PrivateSession>()
+                .HasOne(ps => ps.Trainer)
+                .WithMany(u => u.TrainerSessions)
+                .HasForeignKey(ps => ps.TrainerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PrivateSession → Subscription
+            modelBuilder.Entity<PrivateSession>()
+                .HasOne(ps => ps.Subscription)
+                .WithMany(s => s.PrivateSessions)
+                .HasForeignKey(ps => ps.SubscriptionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
         }

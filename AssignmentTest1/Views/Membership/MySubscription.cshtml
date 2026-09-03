@@ -8,217 +8,563 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
-    .stat-box {
-        text-align: center;
-        padding: 1.25rem;
-        background: #F9FAFB;
+    .subscription-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 0;
+    }
+
+    .subscription-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #E5E7EB;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+
+    .subscription-header {
+        background: linear-gradient(135deg, #4F6EF7, #3B5DE7);
+        padding: 1.5rem 2rem;
+        color: white;
+    }
+
+    .subscription-header h2 {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .subscription-header .plan-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .subscription-header .plan-status {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        display: inline-block;
+        padding: 0.2rem 1rem;
+        border-radius: 50px;
+        background: rgba(255,255,255,0.2);
+        margin-top: 0.25rem;
+    }
+
+    .subscription-body {
+        padding: 2rem;
+    }
+
+    .subscription-detail {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .subscription-detail:last-child {
+        border-bottom: none;
+    }
+
+    .subscription-detail .label {
+        font-weight: 500;
+        color: #6B7280;
+    }
+
+    .subscription-detail .value {
+        font-weight: 600;
+        color: #1A1A2E;
+    }
+
+    .subscription-detail .value .badge {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.75rem;
+    }
+
+    .subscription-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #E5E7EB;
+    }
+
+    .subscription-actions .btn {
+        padding: 0.5rem 1.5rem;
         border-radius: 8px;
-        border: 0.5px solid #E5E7EB;
+        font-weight: 600;
+        font-size: 0.9rem;
     }
 
-        .stat-box .stat-number {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1A1A2E;
-        }
+    .btn-danger-outline {
+        background: transparent;
+        color: #DC3545;
+        border: 1.5px solid #DC3545;
+    }
 
-        .stat-box .stat-label {
-            font-size: 13px;
-            color: #6B7280;
-        }
+    .btn-danger-outline:hover {
+        background: #DC3545;
+        color: white;
+    }
 
-    .progress {
-        height: 8px;
-        border-radius: 99px;
+    .btn-primary-custom {
+        background: #4F6EF7;
+        color: white;
+        border: none;
+        transition: background 0.2s;
+    }
+
+    .btn-primary-custom:hover {
+        background: #3B5DE7;
+        color: white;
+    }
+
+    .btn-success-custom {
+        background: #22C55E;
+        color: white;
+        border: none;
+        transition: background 0.2s;
+    }
+
+    .btn-success-custom:hover {
+        background: #16A34A;
+        color: white;
+    }
+
+    .btn-secondary-custom {
+        background: #F3F4F6;
+        color: #4B5563;
+        border: 1px solid #E5E7EB;
+    }
+
+    .btn-secondary-custom:hover {
         background: #E5E7EB;
-        margin-top: 0.5rem;
+        color: #1F2937;
     }
 
-    .progress-bar {
-        border-radius: 99px;
-        transition: width 0.5s ease;
+    /* No Subscription State */
+    .no-subscription {
+        text-align: center;
+        padding: 3rem 1rem;
     }
 
-    .badge-active {
-        background: #EAF3DE;
-        color: #3B6D11;
+    .no-subscription i {
+        font-size: 4rem;
+        color: #D1D5DB;
+        margin-bottom: 1rem;
     }
 
-    .badge-expired {
-        background: #FCEBEB;
-        color: #A32D2D;
+    .no-subscription h3 {
+        color: #1A1A2E;
+        margin-bottom: 0.5rem;
     }
 
-    .badge-cancelled {
-        background: #FFF3CD;
-        color: #856404;
+    .no-subscription p {
+        color: #6B7280;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Expired Subscription */
+    .expired-banner {
+        background: #FEF2F2;
+        border: 1px solid #FECACA;
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .expired-banner .message {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #991B1B;
+    }
+
+    .expired-banner .message i {
+        font-size: 1.5rem;
+    }
+
+    .btn-renew {
+        background: #DC3545;
+        color: white;
+        padding: 0.4rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-renew:hover {
+        background: #B91C1C;
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .subscription-container {
+            padding: 1rem;
+        }
+
+        .subscription-header {
+            padding: 1rem 1.25rem;
+        }
+
+        .subscription-body {
+            padding: 1.25rem;
+        }
+
+        .subscription-actions {
+            flex-direction: column;
+        }
+
+        .subscription-actions .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .expired-banner {
+            flex-direction: column;
+            text-align: center;
+        }
     }
 </style>
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4><i class="fas fa-user-check me-2"></i>My Subscription</h4>
-                </div>
-                <div class="card-body">
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show">
-                            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
+<div class="subscription-container">
 
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-                    <!-- Plan Info -->
-                    <div class="text-center mb-4">
-                        <h3>@Model.Plan?.PlanName</h3>
-                        <span class="badge badge-active">Active</span>
-                    </div>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-                    <!-- Stats -->
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="stat-box">
-                                <div class="stat-number">RM @Model.Plan?.Price.ToString("F2")</div>
-                                <div class="stat-label">Price</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="stat-box">
-                                <div class="stat-number">@ViewBag.DaysRemaining</div>
-                                <div class="stat-label">Days Remaining</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="stat-box">
-                                <div class="stat-number">
-                                    @if (Model.Plan?.MaxBookings == 0)
-                                    {
-                                        <span>∞</span>
-                                    }
-                                    else
-                                    {
-                                        @ViewBag.BookingsRemaining
-                                    }
-                                </div>
-                                <div class="stat-label">
-                                    @if (Model.Plan?.MaxBookings == 0)
-                                    {
-                                        <span>Unlimited Classes</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Classes Remaining</span>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    @if (Model != null)
+    {
+        // 计算统计数据
+        var daysRemaining = (Model.EndDate - DateTime.Now).Days;
+        var isExpired = daysRemaining < 0;
+        var isExpiringSoon = daysRemaining >= 0 && daysRemaining <= 7;
 
-                    <!-- ✅ 进度条（如果有限制次数） -->
-                    @if (Model.Plan?.MaxBookings > 0)
-                    {
-                        var used = Model.Plan.MaxBookings - ViewBag.BookingsRemaining;
-                        var percent = (double)used / Model.Plan.MaxBookings * 100;
-                        var barColor = percent >= 80 ? "#DC3545" : percent >= 60 ? "#FFC107" : "#22C55E";
+        // 剩余次数
+        var bookingsRemaining = ViewBag.BookingsRemaining ?? 0;
+        var ptRemaining = ViewBag.PTSessionsRemaining ?? 0;
 
-                        <div class="mt-3">
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted small">Used: @used / @Model.Plan.MaxBookings classes</span>
-                                <span class="text-muted small">@(percent.ToString("F0"))%</span>
-                            </div>
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar"
-                                     style="width: @percent%; background: @barColor;"
-                                     aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
-                                </div>
-                            </div>
-                            @if (percent >= 80)
-                            {
-                                <p class="text-danger small mt-1">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>
-                                    You are close to your monthly limit!
-                                </p>
-                            }
-                            @if (percent >= 100)
-                            {
-                                <p class="text-danger small mt-1">
-                                    <i class="fas fa-exclamation-circle me-1"></i>
-                                    You have reached your monthly limit.
-                                    <a asp-action="MemberPlans" class="text-primary">Upgrade your plan</a>
-                                </p>
-                            }
+        <div class="subscription-card">
+            <!-- Header -->
+            <div class="subscription-header">
+                <div class="d-flex justify-content-between align-items-start flex-wrap">
+                    <div>
+                        <div class="plan-name">
+                            <i class="fas fa-crown me-2"></i>@Model.Plan?.PlanName
                         </div>
-                    }
-                    else
-                    {
-                        <div class="mt-3 alert alert-info">
-                            <i class="fas fa-infinity me-2"></i>
-                            You have <strong>unlimited</strong> classes with your @Model.Plan?.PlanName plan!
-                        </div>
-                    }
-
-                    <!-- Details -->
-                    <div class="mt-4">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Start Date:</strong> @Model.StartDate.ToString("dd/MM/yyyy")</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>End Date:</strong> @Model.EndDate.ToString("dd/MM/yyyy")</p>
-                            </div>
-                        </div>
-                        @if (Model.Plan?.MaxBookings > 0)
+                        @if (isExpired)
                         {
-                            <p><strong>Classes Used:</strong> @(Model.Plan.MaxBookings - ViewBag.BookingsRemaining) / @Model.Plan.MaxBookings</p>
+                            <span class="plan-status" style="background: rgba(255,0,0,0.25);">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Expired
+                            </span>
                         }
-                        @if (Model.Plan?.PTSessions > 0)
+                        else if (isExpiringSoon)
                         {
-                            <p><strong>PT Sessions Used:</strong> @Model.PT_Used / @Model.Plan.PTSessions</p>
+                            <span class="plan-status" style="background: rgba(255,193,7,0.3);">
+                                <i class="fas fa-clock me-1"></i> Expiring Soon
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="plan-status">
+                                <i class="fas fa-check-circle me-1"></i> Active
+                            </span>
                         }
                     </div>
-
-                    <!-- Benefits -->
-                    @if (!string.IsNullOrEmpty(Model.Plan?.Benefits))
-                    {
-                        <hr />
-                        <h6><i class="fas fa-list me-2"></i>Benefits</h6>
-                        <ul class="list-unstyled">
-                            @foreach (var benefit in Model.Plan.Benefits.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.85rem; opacity: 0.8;">Status</div>
+                        <div style="font-weight: 600;">
+                            @if (isExpired)
                             {
-                                <li><i class="fas fa-check-circle text-success me-2"></i>@benefit.Trim()</li>
+                                <span style="color: #FECACA;">Inactive</span>
                             }
-                        </ul>
-                    }
-
-                    <!-- Actions -->
-                    <hr />
-                    <div class="d-grid gap-2">
-                        <a asp-controller="Booking" asp-action="ClassCatalog" class="btn btn-success">
-                            <i class="fas fa-search me-2"></i>Browse Classes
-                        </a>
-                        <form asp-action="CancelSubscription" method="post" onsubmit="return confirm('Are you sure you want to cancel your subscription?')">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-danger w-100">
-                                <i class="fas fa-times me-2"></i>Cancel Subscription
-                            </button>
-                        </form>
-                        <a asp-action="MemberPlans" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Plans
-                        </a>
+                            else
+                            {
+                                <span style="color: #86EFAC;">Active</span>
+                            }
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Body -->
+            <div class="subscription-body">
+
+                <!-- ===== Expired Banner ===== -->
+                @if (isExpired)
+                {
+                    <div class="expired-banner">
+                        <div class="message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div>
+                                <strong>Your subscription has expired!</strong>
+                                <div style="font-size: 0.9rem;">Expired on: @Model.EndDate.ToString("dd/MM/yyyy")</div>
+                            </div>
+                        </div>
+                        <a href="/Membership/MemberPlans" class="btn-renew">
+                            <i class="fas fa-sync me-1"></i> Renew Now
+                        </a>
+                    </div>
+                }
+                else if (isExpiringSoon)
+                {
+                    <div class="expired-banner" style="background: #FFFBEB; border-color: #FDE68A;">
+                        <div class="message" style="color: #92400E;">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Expires in @daysRemaining days!</strong>
+                                <div style="font-size: 0.9rem;">@Model.EndDate.ToString("dd/MM/yyyy")</div>
+                            </div>
+                        </div>
+                        @if (!Model.AutoRenew)
+                        {
+                            <a href="/Membership/MemberPlans" class="btn-renew" style="background: #F59E0B;">
+                                <i class="fas fa-sync me-1"></i> Renew Now
+                            </a>
+                        }
+                    </div>
+                }
+
+                <!-- ===== Subscription Details ===== -->
+                <h5 style="margin-bottom: 1rem; color: #1A1A2E;">
+                    <i class="fas fa-info-circle me-2" style="color: #4F6EF7;"></i>Subscription Details
+                </h5>
+
+                <div class="subscription-detail">
+                    <span class="label"><i class="fas fa-tag me-2" style="color: #4F6EF7;"></i>Plan</span>
+                    <span class="value">@Model.Plan?.PlanName</span>
+                </div>
+
+                <div class="subscription-detail">
+                    <span class="label"><i class="fas fa-calendar-alt me-2" style="color: #4F6EF7;"></i>Start Date</span>
+                    <span class="value">@Model.StartDate.ToString("dd/MM/yyyy")</span>
+                </div>
+
+                <div class="subscription-detail">
+                    <span class="label"><i class="fas fa-calendar-check me-2" style="color: #4F6EF7;"></i>End Date</span>
+                    <span class="value">
+                        @Model.EndDate.ToString("dd/MM/yyyy")
+                        @if (!isExpired && daysRemaining >= 0)
+                        {
+                            <span class="badge @(daysRemaining <= 7 ? "bg-warning text-dark" : "bg-info") ms-2">
+                                @daysRemaining days left
+                            </span>
+                        }
+                    </span>
+                </div>
+
+                <div class="subscription-detail">
+                    <span class="label"><i class="fas fa-money-bill me-2" style="color: #4F6EF7;"></i>Price</span>
+                    <span class="value">RM @Model.Plan?.Price.ToString("F2")</span>
+                </div>
+
+                <!-- ===== Usage Stats ===== -->
+                <h5 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #1A1A2E;">
+                    <i class="fas fa-chart-bar me-2" style="color: #4F6EF7;"></i>Usage Statistics
+                </h5>
+
+                <div class="subscription-detail">
+                    <span class="label"><i class="fas fa-dumbbell me-2" style="color: #4F6EF7;"></i>Classes Used</span>
+                    <span class="value">
+                        @if (Model.Plan?.MaxBookings == 0)
+                        {
+                            <span>Unlimited</span>
+                        }
+                        else
+                        {
+                            <span>
+                                @Model.BookingsUsed / @Model.Plan?.MaxBookings
+                                @if (bookingsRemaining <= 3 && bookingsRemaining > 0)
+                                {
+                                    <span class="badge bg-warning text-dark ms-2">@bookingsRemaining left</span>
+                                }
+                                else if (bookingsRemaining == 0 && Model.Plan?.MaxBookings > 0)
+                                {
+                                    <span class="badge bg-danger ms-2">Used Up</span>
+                                }
+                            </span>
+                        }
+                    </span>
+                </div>
+
+                <div class="subscription-detail">
+                    <span class="label"><i class="fas fa-user-tie me-2" style="color: #4F6EF7;"></i>Private Sessions</span>
+                    <span class="value">
+                        @if (Model.Plan?.PTSessions == 0)
+                        {
+                            <span>Not included</span>
+                        }
+                        else
+                        {
+                            <span>
+                                @Model.PT_Used / @Model.Plan?.PTSessions
+                                @if (ptRemaining > 0)
+                                {
+                                    <span class="badge bg-success ms-2">@ptRemaining left</span>
+                                }
+                                else if (ptRemaining == 0)
+                                {
+                                    <span class="badge bg-secondary ms-2">Used Up</span>
+                                }
+                            </span>
+                        }
+                    </span>
+                </div>
+
+                <!-- ===== Auto-Renew ===== -->
+                <h5 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #1A1A2E;">
+                    <i class="fas fa-sync-alt me-2" style="color: #4F6EF7;"></i>Auto-Renew Settings
+                </h5>
+
+                <div class="subscription-detail" style="padding: 1rem 0; background: #F9FAFB; border-radius: 8px; padding-left: 1rem; padding-right: 1rem; border-bottom: none;">
+                    <div>
+                        <span class="label" style="font-size: 1rem;">Auto-Renew</span>
+                        <div style="font-size: 0.8rem; color: #6B7280; margin-top: 2px;">
+                            @if (Model.AutoRenew)
+                            {
+                                <span>Your subscription will renew automatically on expiry date.</span>
+                            }
+                            else
+                            {
+                                <span>You will need to manually renew your subscription.</span>
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        @if (Model.AutoRenew)
+                        {
+                            <span class="badge bg-success" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+                                <i class="fas fa-check-circle me-1"></i> Enabled
+                            </span>
+                            <form asp-action="ToggleAutoRenew" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="subscriptionId" value="@Model.SubscriptionId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger ms-2" style="border-radius: 50px;">
+                                    <i class="fas fa-times me-1"></i> Disable
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+                                <i class="fas fa-times-circle me-1"></i> Disabled
+                            </span>
+                            <form asp-action="ToggleAutoRenew" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="subscriptionId" value="@Model.SubscriptionId" />
+                                <button type="submit" class="btn btn-sm btn-success ms-2" style="border-radius: 50px;">
+                                    <i class="fas fa-check me-1"></i> Enable
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+
+                <!-- ===== Actions ===== -->
+                <div class="subscription-actions">
+                    <a href="/Membership/MemberPlans" class="btn btn-primary-custom">
+                        <i class="fas fa-crown me-2"></i>Browse Plans
+                    </a>
+                    @if (!isExpired)
+                    {
+                        <button type="button" class="btn btn-danger-outline" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                            <i class="fas fa-times me-2"></i>Cancel Subscription
+                        </button>
+                    }
+                    <a href="/Dashboard/MemberDashboard" class="btn btn-secondary-custom">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- ============================================================
+        No Subscription
+        ============================================================ -->
+        <div class="subscription-card">
+            <div class="subscription-body">
+                <div class="no-subscription">
+                    <i class="fas fa-crown"></i>
+                    <h3>No Active Subscription</h3>
+                    <p>You don't have an active membership plan. Subscribe now to start booking classes!</p>
+                    <a href="/Membership/MemberPlans" class="btn btn-primary-custom">
+                        <i class="fas fa-crown me-2"></i>View Plans
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- ============================================================
+Cancel Subscription Modal
+============================================================ -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Cancel Subscription
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel your <strong>@Model?.Plan?.PlanName</strong> subscription?</p>
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Your subscription will remain active until <strong>@Model?.EndDate.ToString("dd/MM/yyyy")</strong>.
+                    You will not be able to book classes after this date.
+                </p>
+                <p class="text-danger small">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Subscription</button>
+                <form asp-action="CancelSubscription" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Yes, Cancel Subscription</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // 自动关闭 Alert 信息（5秒后消失）
+        document.addEventListener('DOMContentLoaded', function() {
+            var alerts = document.querySelectorAll('.alert:not(.alert-dismissible)');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500);
+                }, 5000);
+            });
+        });
+    </script>
+}

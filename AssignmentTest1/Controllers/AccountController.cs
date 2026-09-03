@@ -133,6 +133,12 @@ namespace AssignmentTest1.Controllers
                 return View(model);
             }
 
+            // ✅ 密码正确，检查并更新订阅
+            if (user.Role == "Member")
+            {
+                await CheckAndUpdateExpiredSubscriptions(user.UserId);
+            }
+
             // ✅ 检查验证码（如果登录失败超过2次）
             if (model.FailedAttempts >= 2)
             {
@@ -467,6 +473,95 @@ namespace AssignmentTest1.Controllers
 
             TempData["Success"] = "Password reset successfully! Please login with your new password.";
             return RedirectToAction("Login");
+        }
+        // ============================================================
+        // SUBSCRIPTION HELPER METHODS
+        // ============================================================
+
+        /// <summary>
+        /// 检查并更新过期的订阅
+        /// </summary>
+        private async Task CheckAndUpdateExpiredSubscriptions(int userId)
+        {
+            var today = DateTime.Now.Date;
+
+            // 查找该用户所有已过期但状态仍为 Active 的订阅
+            var expiredSubscriptions = await _context.MemberSubscriptions
+                .Include(s => s.Plan)
+                .Where(s => s.UserId == userId
+                    && s.Status == "Active"
+                    && s.EndDate.Date < today)
+                .ToListAsync();
+
+            foreach (var sub in expiredSubscriptions)
+            {
+                if (sub.AutoRenew)
+                {
+                    // ✅ 自动续费
+                    await RenewSubscription(sub);
+                }
+                else
+                {
+                    // ❌ 不续费，标记为过期
+                    sub.Status = "Expired";
+                }
+            }
+
+            if (expiredSubscriptions.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        /// <summary>
+        /// 自动续费订阅
+        /// </summary>
+        private async Task RenewSubscription(MemberSubscription oldSub)
+        {
+            // 获取计划信息
+            var plan = await _context.MembershipPlans.FindAsync(oldSub.PlanId);
+            if (plan == null) return;
+
+            // 创建新的订阅
+            var newSub = new MemberSubscription
+            {
+                UserId = oldSub.UserId,
+                PlanId = oldSub.PlanId,
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(plan.DurationDays),
+                Status = "Active",
+                BookingsUsed = 0,
+                PT_Used = 0,
+                AutoRenew = oldSub.AutoRenew,
+                PaymentId = oldSub.PaymentId
+            };
+
+            _context.MemberSubscriptions.Add(newSub);
+
+            // 旧订阅标记为过期
+            oldSub.Status = "Expired";
+
+            // 发送续费通知邮件（可选）
+            try
+            {
+                var user = await _context.Users.FindAsync(oldSub.UserId);
+                if (user != null)
+                {
+                    var emailService = new EmailService(_configuration);
+                    await emailService.SendEmailAsync(
+                        user.Email,
+                        "Subscription Auto-Renewed - FitBook",
+                        $"<p>Dear {user.FullName},</p>" +
+                        $"<p>Your <strong>{plan.PlanName}</strong> subscription has been automatically renewed.</p>" +
+                        $"<p><strong>New Expiry Date:</strong> {newSub.EndDate:dd/MM/yyyy}</p>" +
+                        $"<p>Thank you for being a valued member!</p>"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send renewal email: {ex.Message}");
+            }
         }
     }
 }

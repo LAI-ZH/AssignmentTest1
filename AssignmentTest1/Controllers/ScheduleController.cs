@@ -203,10 +203,10 @@ namespace AssignmentTest1.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var schedule = await _context.ClassSchedules
-                .Include(s => s.Class)
-                    .ThenInclude(c => c.Trainer)
-                .Include(s => s.Bookings)
-                    .ThenInclude(b => b.Member)
+                .Include(s => s.Class!)
+                    .ThenInclude(c => c.Trainer!)
+                .Include(s => s.Bookings!)
+                    .ThenInclude(b => b.Member!)
                 .FirstOrDefaultAsync(s => s.ScheduleId == id);
 
             if (schedule == null)
@@ -240,6 +240,121 @@ namespace AssignmentTest1.Controllers
                     ClassName = c.ClassName
                 })
                 .ToListAsync();
+        }
+        // GET: /Schedule/ManageTemplates - 管理日程模板
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ManageTemplates()
+        {
+            var templates = await _context.ClassScheduleTemplates
+                .Include(t => t.Class!)
+                    .ThenInclude(c => c.Trainer)
+                .OrderBy(t => t.DayOfWeek)
+                .ThenBy(t => t.StartTime)
+                .ToListAsync();
+            return View(templates);
+        }
+
+        // GET: /Schedule/CreateTemplate
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateTemplate()
+        {
+            var classes = await GetClasses();
+            ViewBag.Classes = new SelectList(classes, "ClassId", "ClassName");
+            return View();
+        }
+
+        // POST: /Schedule/CreateTemplate
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateTemplate(ScheduleTemplateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var classes = await GetClasses();
+                ViewBag.Classes = new SelectList(classes, "ClassId", "ClassName");
+                return View(model);
+            }
+
+            var template = new ClassScheduleTemplate
+            {
+                ClassId = model.ClassId,
+                DayOfWeek = model.DayOfWeek,
+                StartTime = model.StartTime,
+                EndTime = model.EndTime,
+                Venue = model.Venue,
+                IsActive = true
+            };
+
+            _context.ClassScheduleTemplates.Add(template);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Template created successfully!";
+            return RedirectToAction(nameof(ManageTemplates));
+        }
+        // 在 ScheduleController.cs 中添加
+
+        // POST: /Schedule/GenerateSchedules
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GenerateSchedules(DateTime? startDate, int weeks = 1)
+        {
+            var today = DateOnly.FromDateTime(startDate ?? DateTime.Now);
+            var endDate = today.AddDays(weeks * 7);
+
+            // 获取所有激活的模板
+            var templates = await _context.ClassScheduleTemplates
+                .Include(t => t.Class)
+                .Where(t => t.IsActive)
+                .ToListAsync();
+
+            int createdCount = 0;
+            int skippedCount = 0;
+
+            // 遍历每一天
+            for (var date = today; date < endDate; date = date.AddDays(1))
+            {
+                var dayOfWeek = date.DayOfWeek.ToString();
+
+                // 查找该天对应的模板
+                var dayTemplates = templates.Where(t => t.DayOfWeek == dayOfWeek);
+
+                foreach (var template in dayTemplates)
+                {
+                    // 检查是否已经存在该日期的日程
+                    var exists = await _context.ClassSchedules
+                        .AnyAsync(s => s.ClassId == template.ClassId
+                            && s.ScheduleDate == date
+                            && s.StartTime == template.StartTime);
+
+                    if (exists)
+                    {
+                        skippedCount++;
+                        continue;
+                    }
+
+                    // 创建日程
+                    var schedule = new ClassSchedule
+                    {
+                        ClassId = template.ClassId,
+                        ScheduleDate = date,
+                        StartTime = template.StartTime,
+                        EndTime = template.EndTime,
+                        Venue = template.Venue,
+                        CurrentBookings = 0
+                    };
+
+                    _context.ClassSchedules.Add(schedule);
+                    createdCount++;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Generated {createdCount} schedules. Skipped {skippedCount} existing.";
+
+            // 返回 JSON 用于 AJAX 调用
+            return Json(new { created = createdCount, skipped = skippedCount });
         }
     }
 }

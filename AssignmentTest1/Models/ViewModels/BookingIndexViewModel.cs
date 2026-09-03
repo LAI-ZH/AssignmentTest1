@@ -1,5 +1,4 @@
 ﻿using AssignmentTest1.Models.Entities;
-
 namespace AssignmentTest1.Models.ViewModels
 {
     public class BookingIndexViewModel

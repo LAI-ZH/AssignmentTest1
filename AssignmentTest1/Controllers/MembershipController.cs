@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
-using System.Numerics;
 using System.Security.Claims;
 
 namespace AssignmentTest1.Controllers
@@ -431,8 +430,17 @@ namespace AssignmentTest1.Controllers
                 bookingsRemaining = 999; // 无限
             }
 
+            // 计算私人训练剩余次数
+            int ptRemaining = 0;
+            if (subscription.Plan.PTSessions > 0)
+            {
+                ptRemaining = subscription.Plan.PTSessions - subscription.PT_Used;
+                if (ptRemaining < 0) ptRemaining = 0;
+            }
+
             ViewBag.DaysRemaining = daysRemaining > 0 ? daysRemaining : 0;
             ViewBag.BookingsRemaining = bookingsRemaining > 0 ? bookingsRemaining : 0;
+            ViewBag.PTSessionsRemaining = ptRemaining;
 
             return View(subscription);
         }
@@ -464,6 +472,41 @@ namespace AssignmentTest1.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Your subscription has been cancelled.";
+            return RedirectToAction("MySubscription");
+        }
+
+        // ============================================================
+        // AUTO-RENEW FUNCTIONS
+        // ============================================================
+
+
+        // POST: /Membership/ToggleAutoRenew
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> ToggleAutoRenew(int subscriptionId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var memberId = int.Parse(userIdClaim);
+
+            var subscription = await _context.MemberSubscriptions
+                .FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId
+                    && s.UserId == memberId
+                    && s.Status == "Active");
+
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+
+            subscription.AutoRenew = !subscription.AutoRenew;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Auto-renew has been {(subscription.AutoRenew ? "enabled" : "disabled")}.";
             return RedirectToAction("MySubscription");
         }
 
@@ -595,7 +638,7 @@ namespace AssignmentTest1.Controllers
                 Status = "Active",
                 BookingsUsed = 0,
                 PT_Used = 0,
-                AutoRenew = false
+                AutoRenew = model.AutoRenew
             };
 
             _context.MemberSubscriptions.Add(subscription);

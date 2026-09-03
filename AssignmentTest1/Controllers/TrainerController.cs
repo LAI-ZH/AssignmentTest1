@@ -359,5 +359,74 @@ namespace AssignmentTest1.Controllers
             TempData["Success"] = $"Booking cancelled successfully!";
             return RedirectToAction("MySchedule");
         }
+        // POST: /Trainer/ConfirmPrivateSession
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainer")]
+        public async Task<IActionResult> ConfirmPrivateSession(int sessionId)
+        {
+            var session = await _context.PrivateSessions.FindAsync(sessionId);
+            if (session == null) return NotFound();
+
+            // 验证该 session 属于当前教练
+            var trainerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (session.TrainerId != trainerId) return Forbid();
+
+            session.Status = "Confirmed";
+            session.ConfirmedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Private session confirmed!";
+            return RedirectToAction("TrainerDashboard", "Dashboard");
+        }
+
+        // POST: /Trainer/RejectPrivateSession
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainer")]
+        public async Task<IActionResult> RejectPrivateSession(int sessionId)
+        {
+            var session = await _context.PrivateSessions.FindAsync(sessionId);
+            if (session == null) return NotFound();
+
+            var trainerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (session.TrainerId != trainerId) return Forbid();
+
+            session.Status = "Cancelled";
+            session.CancelledAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            // 退还 PT 次数
+            var subscription = await _context.MemberSubscriptions
+                .FirstOrDefaultAsync(s => s.SubscriptionId == session.SubscriptionId);
+            if (subscription != null && subscription.PT_Used > 0)
+            {
+                subscription.PT_Used--;
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["Success"] = "Private session rejected. PT credit returned.";
+            return RedirectToAction("TrainerDashboard", "Dashboard");
+        }
+
+        // POST: /Trainer/CompletePrivateSession
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainer")]
+        public async Task<IActionResult> CompletePrivateSession(int sessionId)
+        {
+            var session = await _context.PrivateSessions.FindAsync(sessionId);
+            if (session == null) return NotFound();
+
+            var trainerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (session.TrainerId != trainerId) return Forbid();
+
+            session.Status = "Completed";
+            session.CompletedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Private session marked as completed!";
+            return RedirectToAction("TrainerDashboard", "Dashboard");
+        }
     }
 }

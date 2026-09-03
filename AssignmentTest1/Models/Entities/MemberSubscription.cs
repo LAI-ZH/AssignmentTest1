@@ -34,5 +34,6 @@ namespace AssignmentTest1.Models.Entities
         public bool AutoRenew { get; set; } = false;
         public int? PaymentId { get; set; }
         public Payment? Payment { get; set; }
+        public ICollection<PrivateSession>? PrivateSessions { get; set; }
     }
 }

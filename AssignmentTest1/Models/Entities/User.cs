@@ -54,5 +54,7 @@ namespace AssignmentTest1.Models.Entities
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<Waitlist>? Waitlists { get; set; }
         public ICollection<TrainerPhoto>? TrainerPhotos { get; set; }
+        public ICollection<PrivateSession>? PrivateSessions { get; set; }  // 作为 Member
+        public ICollection<PrivateSession>? TrainerSessions { get; set; }  // 作为 Trainer
     }
 }

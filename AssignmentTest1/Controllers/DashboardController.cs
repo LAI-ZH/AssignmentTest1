@@ -142,6 +142,18 @@ namespace AssignmentTest1.Controllers
 
             var trainerId = int.Parse(userIdClaim);
 
+            // ✅ 获取私人训练预约（会员为这位教练预订的）
+            var privateSessions = await _context.PrivateSessions
+                .Include(ps => ps.Member)
+                .Where(ps => ps.TrainerId == trainerId && ps.Status != "Cancelled")
+                .OrderBy(ps => ps.PreferredDate)
+                .ThenBy(ps => ps.PreferredTime)
+                .ToListAsync();
+            ViewBag.PrivateSessions = privateSessions;
+
+            // 统计待确认的预约数量
+            ViewBag.PendingPrivateSessions = privateSessions.Count(ps => ps.Status == "Pending");
+
             // 获取教练的日程（用于日历显示)
             var mySchedules = await _context.ClassSchedules
                 .Include(s => s.Class)

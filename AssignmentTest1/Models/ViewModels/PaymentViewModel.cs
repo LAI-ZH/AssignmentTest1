@@ -36,5 +36,8 @@ namespace AssignmentTest1.Models.ViewModels
         [Display(Name = "Cardholder Name")]
         [StringLength(100)]
         public string? CardholderName { get; set; }
+
+        [Display(Name = "Auto-Renew")]
+        public bool AutoRenew { get; set; } = true;
     }
 }

@@ -35,6 +35,10 @@
         </div>
     </div>
 
+    <a href="@Url.Action("BookPrivateSession", "Booking")" class="btn btn-primary">
+        <i class="fas fa-user-tie me-2"></i>Book Private Session
+    </a>
+
     <!-- ✅ My Booked Classes Schedule -->
     <div class="mt-4">
         <h5><i class="fas fa-calendar-check me-2"></i>My Booked Classes</h5>
@@ -158,6 +162,9 @@
             </a>
             <a asp-controller="Membership" asp-action="MemberPlans" class="action-btn">
                 <i class="fas fa-crown"></i> Membership plans
+            </a>
+            <a asp-controller="Booking" asp-action="MyPrivateSessions" class="action-btn">
+                <i class="fas fa-user-tie"></i> My Private Sessions
             </a>
         </div>
     </div>

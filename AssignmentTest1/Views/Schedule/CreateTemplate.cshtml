@@ -1,0 +1,87 @@
+﻿@model AssignmentTest1.Models.ViewModels.ScheduleTemplateViewModel
+
+@{
+    ViewData["Title"] = "Create Schedule Template";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2><i class="fas fa-clone me-2"></i>Create Schedule Template</h2>
+    <p class="text-muted">Create a weekly recurring template. Schedules will be generated automatically each week.</p>
+
+    <form asp-action="CreateTemplate" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="card">
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="ClassId" class="form-label"></label>
+                    <select asp-for="ClassId" class="form-select" asp-items="ViewBag.Classes">
+                        <option value="">-- Select Class --</option>
+                    </select>
+                    <span asp-validation-for="ClassId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DayOfWeek" class="form-label"></label>
+                    <select asp-for="DayOfWeek" class="form-select">
+                        <option value="">-- Select Day --</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                    </select>
+                    <span asp-validation-for="DayOfWeek" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="StartTime" class="form-label"></label>
+                            <input asp-for="StartTime" type="time" class="form-control" />
+                            <span asp-validation-for="StartTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="EndTime" class="form-label"></label>
+                            <input asp-for="EndTime" type="time" class="form-control" />
+                            <span asp-validation-for="EndTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="Venue" class="form-label"></label>
+                            <input asp-for="Venue" class="form-control" />
+                            <span asp-validation-for="Venue" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="IsActive" class="form-check-input" />
+                    <label asp-for="IsActive" class="form-check-label"></label>
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Create Template
+                </button>
+                <a asp-action="ManageTemplates" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Templates
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

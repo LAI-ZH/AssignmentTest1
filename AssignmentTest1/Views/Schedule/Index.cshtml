@@ -322,6 +322,12 @@
     <div class="page-header">
         <h2><i class="fas fa-calendar-alt me-2"></i>Weekly Class Schedule</h2>
         <div class="header-actions">
+            <button id="generateBtn" class="btn btn-success" onclick="generateSchedules()">
+                <i class="fas fa-sync me-2"></i>Generate This Week
+            </button>
+            <a asp-action="ManageTemplates" class="btn btn-info">
+                <i class="fas fa-clone me-2"></i>Manage Templates
+            </a>
             <a asp-action="Create" class="btn btn-primary">
                 <i class="fas fa-plus me-2"></i>Schedule Class
             </a>
@@ -331,6 +337,28 @@
         </div>
     </div>
 
+<script>
+    function generateSchedules() {
+        if (confirm('Generate schedules for this week? Existing schedules will be skipped.')) {
+            $.ajax({
+                url: '@Url.Action("GenerateSchedules", "Schedule")',
+                type: 'POST',
+                data: {
+                    startDate: new Date().toISOString().split('T')[0],
+                    weeks: 1
+                },
+                success: function (data) {
+                    alert(`Generated ${data.created} schedules. Skipped ${data.skipped} existing.`);
+                    location.reload();
+                },
+                error: function () {
+                    alert('Error generating schedules. Please try again.');
+                }
+            });
+        }
+    }
+
+</script>
     <div class="filter-bar">
         <div class="search-box">
             <i class="fas fa-search"></i>

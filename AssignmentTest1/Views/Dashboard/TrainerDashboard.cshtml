@@ -65,6 +65,90 @@
         </div>
     </div>
 
+    <!-- Private Session Requests -->
+<div class="db-section mt-4">
+    <p class="section-title">
+        <i class="fas fa-user-tie me-1"></i>Private Session Requests
+        @if (ViewBag.PendingPrivateSessions > 0)
+        {
+            <span class="badge bg-warning text-dark ms-2">@ViewBag.PendingPrivateSessions pending</span>
+        }
+    </p>
+    <div class="db-card">
+        @if (ViewBag.PrivateSessions != null && ViewBag.PrivateSessions.Count > 0)
+        {
+            <table class="db-table">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Preferred Date</th>
+                        <th>Preferred Time</th>
+                        <th>Notes</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var session in ViewBag.PrivateSessions)
+                    {
+                        <tr>
+                            <td>@session.Member?.FullName</td>
+                            <td>@session.PreferredDate.ToString("dd/MM/yyyy")</td>
+                            <td>@session.PreferredTime</td>
+                            <td>@(string.IsNullOrEmpty(session.Notes) ? "-" : session.Notes)</td>
+                            <td>
+                                @if (session.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                }
+                                else if (session.Status == "Confirmed")
+                                {
+                                    <span class="badge bg-success">Confirmed</span>
+                                }
+                                else if (session.Status == "Completed")
+                                {
+                                    <span class="badge bg-primary">Completed</span>
+                                }
+                                else if (session.Status == "Cancelled")
+                                {
+                                    <span class="badge bg-danger">Cancelled</span>
+                                }
+                            </td>
+                            <td>
+                                @if (session.Status == "Pending")
+                                {
+                                    <form asp-controller="Trainer" asp-action="ConfirmPrivateSession" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="sessionId" value="@session.PrivateSessionId" />
+                                        <button type="submit" class="btn btn-sm btn-success">Confirm</button>
+                                    </form>
+                                    <form asp-controller="Trainer" asp-action="RejectPrivateSession" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="sessionId" value="@session.PrivateSessionId" />
+                                        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                    </form>
+                                }
+                                @if (session.Status == "Confirmed")
+                                {
+                                    <form asp-controller="Trainer" asp-action="CompletePrivateSession" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="sessionId" value="@session.PrivateSessionId" />
+                                        <button type="submit" class="btn btn-sm btn-primary">Mark Complete</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="db-empty">No private session requests.</p>
+        }
+    </div>
+</div>
+
 </div>
 
 @section Scripts {

@@ -280,6 +280,50 @@ namespace AssignmentTest1.Controllers
             return RedirectToAction("MyBookings");
         }
 
+        // GET: /Booking/BookPrivateSession
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> BookPrivateSession()
+        {
+            // 获取当前会员
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var memberId = int.Parse(userIdClaim);
+
+            // 获取会员的订阅信息
+            var subscription = await _context.MemberSubscriptions
+                .Include(s => s.Plan)
+                .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
+
+            if (subscription == null || subscription.Plan.PTSessions == 0)
+            {
+                TempData["Error"] = "You don't have any private session credits.";
+                return RedirectToAction("MySubscription", "Membership");
+            }
+
+            // 检查是否还有剩余次数
+            var remaining = subscription.Plan.PTSessions - subscription.PT_Used;
+            if (remaining <= 0)
+            {
+                TempData["Error"] = "You have used all your private sessions.";
+                return RedirectToAction("MySubscription", "Membership");
+            }
+
+            // 获取可用的教练列表
+            var trainers = await _context.Users
+                .Where(u => u.Role == "Trainer" && u.IsLocked == false)
+                .Select(u => new { u.UserId, u.FullName })
+                .ToListAsync();
+
+            ViewBag.Trainers = trainers;
+            ViewBag.RemainingSessions = remaining;
+
+            return View("~/Views/Booking/BookPrivateSession.cshtml");
+        }
+
+
         // POST: /Booking/JoinWaitlist - 加入 Waitlist
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -340,6 +384,134 @@ namespace AssignmentTest1.Controllers
 
             TempData["Success"] = $"You have been added to the waitlist (Position: {waitlistCount})!";
             return RedirectToAction("ClassDetails", new { id = schedule.ClassId });
+        }
+
+        // POST: /Booking/BookPrivateSession
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> BookPrivateSession(int trainerId, DateTime preferredDate, TimeSpan preferredTime, string? notes)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var memberId = int.Parse(userIdClaim);
+
+            // ✅ 验证日期是否有效
+            if (preferredDate == DateTime.MinValue || preferredDate == DateTime.MaxValue)
+            {
+                TempData["Error"] = "Please enter a valid date.";
+                return RedirectToAction("BookPrivateSession");
+            }
+
+            // ✅ 验证日期是否在过去
+            if (preferredDate.Date < DateTime.Today)
+            {
+                TempData["Error"] = "Please select today or a future date.";
+                return RedirectToAction("BookPrivateSession");
+            }
+
+            // ✅ 验证年份是否合理
+            if (preferredDate.Year < 1900 || preferredDate.Year > 2100)
+            {
+                TempData["Error"] = "Please enter a valid year (1900-2100).";
+                return RedirectToAction("BookPrivateSession");
+            }
+
+            // 获取订阅信息
+            var subscription = await _context.MemberSubscriptions
+                .Include(s => s.Plan)
+                .FirstOrDefaultAsync(s => s.UserId == memberId && s.Status == "Active");
+
+            if (subscription == null || subscription.Plan.PTSessions == 0)
+            {
+                TempData["Error"] = "You don't have any private session credits.";
+                return RedirectToAction("MySubscription", "Membership");
+            }
+
+            // 检查剩余次数
+            var remaining = subscription.Plan.PTSessions - subscription.PT_Used;
+            if (remaining <= 0)
+            {
+                TempData["Error"] = "You have used all your private sessions.";
+                return RedirectToAction("MySubscription", "Membership");
+            }
+
+            // ✅ 检查教练是否在该时间段已有课程
+            var targetDate = DateOnly.FromDateTime(preferredDate);
+            var targetTime = TimeOnly.FromTimeSpan(preferredTime);
+            var endTime = targetTime.AddHours(1);
+
+            var hasConflict = await _context.ClassSchedules
+                .AnyAsync(s => s.Class.TrainerId == trainerId
+                    && s.ScheduleDate == targetDate
+                    && s.StartTime < endTime
+                    && s.EndTime > targetTime);
+
+            if (hasConflict)
+            {
+                TempData["Error"] = "This trainer already has a class at the selected time. Please choose another time or trainer.";
+                return RedirectToAction("BookPrivateSession");
+            }
+
+            // ✅ 检查教练是否在该时间段已有其他私人训练预约
+            var hasPrivateConflict = await _context.PrivateSessions
+                .AnyAsync(p => p.TrainerId == trainerId
+                    && p.PreferredDate == targetDate
+                    && p.PreferredTime < endTime
+                    && p.PreferredTime.AddHours(1) > targetTime
+                    && p.Status != "Cancelled");
+
+            if (hasPrivateConflict)
+            {
+                TempData["Error"] = "This trainer already has a private session at the selected time. Please choose another time or trainer.";
+                return RedirectToAction("BookPrivateSession");
+            }
+
+            // 创建私人训练预约
+            var privateSession = new PrivateSession
+            {
+                MemberId = memberId,
+                TrainerId = trainerId,
+                PreferredDate = DateOnly.FromDateTime(preferredDate),
+                PreferredTime = TimeOnly.FromTimeSpan(preferredTime),
+                Notes = notes,
+                Status = "Pending",  // Pending, Confirmed, Completed, Cancelled
+                BookedAt = DateTime.Now,
+                SubscriptionId = subscription.SubscriptionId
+            };
+
+            _context.PrivateSessions.Add(privateSession);
+            await _context.SaveChangesAsync();
+
+            // 更新 PT_Used
+            subscription.PT_Used++;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Private session booked successfully! Waiting for trainer confirmation.";
+            return RedirectToAction("MyPrivateSessions");
+        }
+
+        // GET: /Booking/MyPrivateSessions
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> MyPrivateSessions()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var memberId = int.Parse(userIdClaim);
+
+            var sessions = await _context.PrivateSessions
+                .Include(ps => ps.Trainer)
+                .Where(ps => ps.MemberId == memberId)
+                .OrderByDescending(ps => ps.BookedAt)
+                .ToListAsync();
+
+            return View(sessions);
         }
 
         // GET: /Booking/MyBookings - 我的预订
