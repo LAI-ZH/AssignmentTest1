@@ -567,7 +567,7 @@ namespace AssignmentTest1.Controllers
 
         // GET: /Membership/QRPaymentScan
         [Authorize(Roles = "Member")]
-        public IActionResult QRPaymentScan()
+        public async Task<IActionResult> QRPaymentScan()
         {
             // ✅ 从 TempData 获取 PlanId
             var planId = TempData["QRPlanId"] as int?;
@@ -577,7 +577,39 @@ namespace AssignmentTest1.Controllers
                 planId = 1; // 或者返回错误
             }
 
-            ViewBag.PlanId = planId;
+            if (planId == null || planId == 0)
+            {
+                var defaultPlan = await _context.MembershipPlans
+                    .Where(p => p.IsActive)
+                    .OrderBy(p => p.DisplayOrder)
+                    .FirstOrDefaultAsync();
+                if (defaultPlan != null)
+                {
+                    planId = defaultPlan.PlanId;
+                }
+            }
+
+            // ✅ 获取计划详情填充 ViewBag
+            if (planId.HasValue && planId.Value > 0)
+            {
+                var plan = await _context.MembershipPlans.FindAsync(planId.Value);
+                if (plan != null)
+                {
+                    ViewBag.PlanId = plan.PlanId;
+                    ViewBag.PlanName = plan.PlanName;
+                    ViewBag.Amount = plan.Price;
+                    ViewBag.DurationDays = plan.DurationDays;
+                }
+            }
+
+            // 如果还是没有，设置默认值
+            if (ViewBag.PlanName == null)
+            {
+                ViewBag.PlanId = 1;
+                ViewBag.PlanName = "Membership Plan";
+                ViewBag.Amount = 0;
+                ViewBag.DurationDays = 30;
+            }
             return View();
         }
 
@@ -778,7 +810,7 @@ namespace AssignmentTest1.Controllers
                         Status = "Active",
                         BookingsUsed = 0,
                         PT_Used = 0,
-                        AutoRenew = false
+                        AutoRenew = model.AutoRenew
                     };
                     _context.MemberSubscriptions.Add(subscription);
                     await _context.SaveChangesAsync(); // 生成 SubscriptionId
@@ -885,7 +917,7 @@ namespace AssignmentTest1.Controllers
                     Status = "Active",
                     BookingsUsed = 0,
                     PT_Used = 0,
-                    AutoRenew = false
+                    AutoRenew = model.AutoRenew
                 };
 
                 _context.MemberSubscriptions.Add(subscription);

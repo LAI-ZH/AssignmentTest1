@@ -3,5 +3,6 @@
     public class QRSubscriptionModel
     {
         public int PlanId { get; set; }
+        public bool AutoRenew { get; set; }
     }
 }

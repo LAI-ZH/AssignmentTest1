@@ -20,22 +20,26 @@ namespace AssignmentTest1.Models.ViewModels
         public string PaymentMethod { get; set; } = "Card";
 
         // Card 支付字段
+        [Required(ErrorMessage = "Card number is required")]
         [Display(Name = "Card Number")]
         [StringLength(19, MinimumLength = 16, ErrorMessage = "Please enter a valid 16-digit card number")]
         public string? CardNumber { get; set; }
 
-        [Display(Name = "Expiry Date")]
-        [RegularExpression(@"^(0[1-9]|1[0-2])\/([0-9]{2})$", ErrorMessage = "Please enter valid MM/YY format")]
-        public string? ExpiryDate { get; set; }
-
-        [Display(Name = "CVV")]
-        [StringLength(3, MinimumLength = 3)]
-        [RegularExpression(@"^[0-9]{3}$", ErrorMessage = "Please enter a valid 3-digit CVV")]
-        public string? CVV { get; set; }
-
+        [Required(ErrorMessage = "Cardholder name is required")]
         [Display(Name = "Cardholder Name")]
         [StringLength(100)]
         public string? CardholderName { get; set; }
+
+        [Required(ErrorMessage = "Expiry date is required")]
+        [RegularExpression(@"^(0[1-9]|1[0-2])\/([0-9]{2})$", ErrorMessage = "Please enter valid MM/YY format")]
+        [Display(Name = "Expiry Date")]
+        public string? ExpiryDate { get; set; }
+
+        [Required(ErrorMessage = "CVV is required")]
+        [StringLength(3, MinimumLength = 3)]
+        [RegularExpression(@"^[0-9]{3}$", ErrorMessage = "Please enter a valid 3-digit CVV")]
+        [Display(Name = "CVV")]
+        public string? CVV { get; set; }
 
         [Display(Name = "Auto-Renew")]
         public bool AutoRenew { get; set; } = true;

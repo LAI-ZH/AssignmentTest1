@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     ViewData["Title"] = "QR Payment";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -8,113 +8,6 @@
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-@* <style>
-    .scanner-container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-        text-align: center;
-    }
-
-        .scanner-container h2 {
-            font-weight: 600;
-            color: #1A1A2E;
-        }
-
-        .scanner-container .text-muted {
-            color: #6B7280;
-        }
-
-    #qr-reader {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 2px solid #E5E7EB;
-    }
-
-        #qr-reader video {
-            border-radius: 12px;
-        }
-
-    .scan-status {
-        text-align: center;
-        margin-top: 1rem;
-        font-size: 14px;
-        color: #6B7280;
-    }
-
-        .scan-status .fa-spinner {
-            animation: spin 1s linear infinite;
-        }
-
-    @@keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    .success-message {
-        text-align: center;
-        padding: 2rem 1rem;
-    }
-
-        .success-message .icon {
-            font-size: 64px;
-            color: #198754;
-        }
-
-        .success-message h2 {
-            color: #198754;
-            font-weight: 600;
-            margin-top: 1rem;
-        }
-
-        .success-message .text-muted {
-            color: #6B7280;
-        }
-
-    .back-container {
-        text-align: center;
-        margin-top: 2rem;
-    }
-
-    .amount-badge {
-        display: inline-block;
-        background: #F0F3FF;
-        color: #4F6EF7;
-        padding: 8px 20px;
-        border-radius: 99px;
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
-
-    .btn-primary {
-        background-color: #4F6EF7;
-        border-color: #4F6EF7;
-    }
-
-        .btn-primary:hover {
-            background-color: #3a56d4;
-            border-color: #3a56d4;
-        }
-
-    .btn-danger {
-        background-color: #DC3545;
-        border-color: #DC3545;
-    }
-
-        .btn-danger:hover {
-            background-color: #b02a37;
-            border-color: #b02a37;
-        }
-</style> *@
-
 <div class="container mt-4">
     <div class="scanner-container">
 
@@ -122,12 +15,39 @@
         <h2><i class="fas fa-qrcode me-2"></i>Scan QR Code</h2>
         <p class="text-muted">Show any QR code to your <strong>computer camera</strong></p>
 
-        <!-- Amount -->
-        <div class="text-center">
-            <span class="amount-badge">
-                <i class="fas fa-money-bill-wave me-2"></i>
-                RM @ViewBag.Amount?.ToString("F2")
-            </span>
+        <!-- ✅ Plan Information -->
+        <div class="card mb-3" style="max-width: 400px; margin: 0 auto;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title mb-0">@ViewBag.PlanName</h5>
+                        <small class="text-muted">@ViewBag.DurationDays days</small>
+                    </div>
+                    <div>
+                        <span class="amount-badge">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            RM @ViewBag.Amount?.ToString("F2")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ Auto-Renew Checkbox -->
+        <div class="card mb-3" style="max-width: 400px; margin: 0 auto;">
+            <div class="card-body text-start">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="autoRenew" checked />
+                    <label class="form-check-label" for="autoRenew">
+                        <i class="fas fa-sync-alt me-1 text-success"></i>
+                        Enable Auto-Renewal
+                        <small class="text-muted d-block">
+                            Your subscription will automatically renew on the expiry date.
+                            You can cancel anytime.
+                        </small>
+                    </label>
+                </div>
+            </div>
         </div>
 
         <!-- QR Scanner -->
@@ -174,7 +94,7 @@
 @section Scripts {
     <script>
         // ============================================================
-        // Get PlanId from ViewBag
+        // Get Data from ViewBag
         // ============================================================
 
         var planId = @ViewBag.PlanId;
@@ -300,6 +220,10 @@
         function createSubscription() {
             console.log('Creating subscription with PlanId:', planId);
 
+            // ✅ 获取 Auto-Renew 值
+            var autoRenew = document.getElementById('autoRenew').checked;
+            console.log('Auto-Renew:', autoRenew);
+
             if (!planId || planId === 0) {
                 alert('Error: Plan not selected. Please go back and try again.');
                 if (scanStatus) {
@@ -320,7 +244,8 @@
                     'RequestVerificationToken': tokenValue
                 },
                 body: JSON.stringify({
-                    planId: planId
+                    planId: planId,
+                    autoRenew: autoRenew   // ✅ 传递 Auto-Renew
                 })
             })
                 .then(function(res) {
