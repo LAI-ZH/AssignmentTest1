@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssignmentTest1.Migrations
 {
     [DbContext(typeof(FitBookDbContext))]
-    [Migration("20260619094613_InitialCreate")]
+    [Migration("20260903145417_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace AssignmentTest1.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -75,6 +75,11 @@ namespace AssignmentTest1.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateOnly>("ScheduleDate")
                         .HasColumnType("date");
 
@@ -91,6 +96,42 @@ namespace AssignmentTest1.Migrations
                     b.HasIndex("ClassId");
 
                     b.ToTable("ClassSchedules");
+                });
+
+            modelBuilder.Entity("AssignmentTest1.Models.Entities.ClassScheduleTemplate", b =>
+                {
+                    b.Property<int>("TemplateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TemplateId"));
+
+                    b.Property<int>("ClassId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DayOfWeek")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Venue")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("TemplateId");
+
+                    b.HasIndex("ClassId");
+
+                    b.ToTable("ClassScheduleTemplates");
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.FitnessClass", b =>
@@ -138,8 +179,23 @@ namespace AssignmentTest1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubscriptionId"));
 
+                    b.Property<bool>("AutoRenew")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("BookingsUsed")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("PT_Used")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PaymentId")
+                        .HasColumnType("int");
 
                     b.Property<int>("PlanId")
                         .HasColumnType("int");
@@ -171,15 +227,42 @@ namespace AssignmentTest1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlanId"));
 
+                    b.Property<string>("Benefits")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
                     b.Property<int>("DurationDays")
                         .HasColumnType("int");
 
+                    b.Property<string>("Excludes")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IncludesGymAccess")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IncludesInbody")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LoyaltyDiscount")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("MaxBookings")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PTSessions")
+                        .HasColumnType("int");
 
                     b.Property<string>("PlanName")
                         .IsRequired()
@@ -187,11 +270,124 @@ namespace AssignmentTest1.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("PlanId");
 
                     b.ToTable("MembershipPlans");
+                });
+
+            modelBuilder.Entity("AssignmentTest1.Models.Entities.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CardLastFour")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CardType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("QRCodeData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("QRCodeImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("AssignmentTest1.Models.Entities.PrivateSession", b =>
+                {
+                    b.Property<int>("PrivateSessionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrivateSessionId"));
+
+                    b.Property<DateTime>("BookedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MemberId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("PreferredDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("PreferredTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TrainerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrivateSessionId");
+
+                    b.HasIndex("MemberId");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.HasIndex("TrainerId");
+
+                    b.ToTable("PrivateSessions");
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.TrainerPhoto", b =>
@@ -243,8 +439,18 @@ namespace AssignmentTest1.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Gender")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<bool>("IsLocked")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LockReason")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("LockUntil")
                         .HasColumnType("datetime2");
@@ -259,6 +465,12 @@ namespace AssignmentTest1.Migrations
 
                     b.Property<string>("ProfilePhoto")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResetToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResetTokenExpiry")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -328,6 +540,17 @@ namespace AssignmentTest1.Migrations
                     b.Navigation("Class");
                 });
 
+            modelBuilder.Entity("AssignmentTest1.Models.Entities.ClassScheduleTemplate", b =>
+                {
+                    b.HasOne("AssignmentTest1.Models.Entities.FitnessClass", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+                });
+
             modelBuilder.Entity("AssignmentTest1.Models.Entities.FitnessClass", b =>
                 {
                     b.HasOne("AssignmentTest1.Models.Entities.User", "Trainer")
@@ -356,6 +579,58 @@ namespace AssignmentTest1.Migrations
                     b.Navigation("Plan");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AssignmentTest1.Models.Entities.Payment", b =>
+                {
+                    b.HasOne("AssignmentTest1.Models.Entities.MembershipPlan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId");
+
+                    b.HasOne("AssignmentTest1.Models.Entities.MemberSubscription", "Subscription")
+                        .WithOne("Payment")
+                        .HasForeignKey("AssignmentTest1.Models.Entities.Payment", "SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AssignmentTest1.Models.Entities.User", "User")
+                        .WithMany("Payments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("Subscription");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AssignmentTest1.Models.Entities.PrivateSession", b =>
+                {
+                    b.HasOne("AssignmentTest1.Models.Entities.User", "Member")
+                        .WithMany("PrivateSessions")
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AssignmentTest1.Models.Entities.MemberSubscription", "Subscription")
+                        .WithMany("PrivateSessions")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AssignmentTest1.Models.Entities.User", "Trainer")
+                        .WithMany("TrainerSessions")
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Member");
+
+                    b.Navigation("Subscription");
+
+                    b.Navigation("Trainer");
                 });
 
             modelBuilder.Entity("AssignmentTest1.Models.Entities.TrainerPhoto", b =>
@@ -400,6 +675,13 @@ namespace AssignmentTest1.Migrations
                     b.Navigation("Schedules");
                 });
 
+            modelBuilder.Entity("AssignmentTest1.Models.Entities.MemberSubscription", b =>
+                {
+                    b.Navigation("Payment");
+
+                    b.Navigation("PrivateSessions");
+                });
+
             modelBuilder.Entity("AssignmentTest1.Models.Entities.MembershipPlan", b =>
                 {
                     b.Navigation("Subscriptions");
@@ -411,9 +693,15 @@ namespace AssignmentTest1.Migrations
 
                     b.Navigation("Classes");
 
+                    b.Navigation("Payments");
+
+                    b.Navigation("PrivateSessions");
+
                     b.Navigation("Subscriptions");
 
                     b.Navigation("TrainerPhotos");
+
+                    b.Navigation("TrainerSessions");
 
                     b.Navigation("Waitlists");
                 });
